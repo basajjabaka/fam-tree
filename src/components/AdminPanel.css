@@ -1,0 +1,197 @@
+/* Base styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.container {
+  width: 95%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 15px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.container.admin {
+  max-width: 500px;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 1.5rem;
+}
+
+/* Form elements */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="tel"],
+input[type="password"],
+input[type="file"],
+textarea,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* Select container */
+.selects {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.selects select {
+  flex: 1 1 200px;
+  min-width: 150px;
+}
+
+/* Search input */
+.search-input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+/* Buttons */
+button {
+  padding: 12px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Member list */
+ul.member-list {
+  list-style: none;
+  padding: 0;
+  max-height: 610px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin: 15px 0;
+}
+
+li.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #ccc;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.member-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.member-actions button {
+  width: auto;
+  min-width: 100px;
+  margin: 0;
+}
+
+/* Success and danger buttons */
+.member-actions button {
+  background-color: #28a745;
+}
+
+.member-actions button:hover {
+  background-color: #218838;
+}
+
+.member-actions button:last-child {
+  background-color: #dc3545;
+}
+
+.member-actions button:last-child:hover {
+  background-color: #c82333;
+}
+
+/* Media Queries */
+@media screen and (max-width: 768px) {
+  .container {
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
+  }
+
+  li.member-item {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .member-actions {
+    justify-content: center;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .selects {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .selects select {
+    width: 100%;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="file"],
+  textarea,
+  select {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 50px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
