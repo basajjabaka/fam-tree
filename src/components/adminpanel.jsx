@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import moment from "moment";
 import "react-datepicker/dist/react-datepicker.css";
-import "./AdminPanel.css";
+import "./adminpanel.css";
 
 function AdminPanel() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);

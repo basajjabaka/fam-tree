@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import GetProfiles from "./components/GetProfiles";
 import HomePage from "./components/HomePage";
-import AdminPanel from "./components/adminpanel";
+import AdminPanel from "./components/AdminPanel";
 import ErrorPage from "./components/ErrorPage";
 
 function App() {

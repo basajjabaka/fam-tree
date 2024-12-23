@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import moment from "moment";
-import "./Homepage.css";
+import "./homepage.css";
 import UsersList from "./UsersList";
 
 function HomePage() {
