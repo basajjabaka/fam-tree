@@ -95,6 +95,7 @@ function GetProfiles() {
                 phone={child.phone}
                 occupation={child.occupation}
                 address={child.address}
+                ismarried={Boolean(child.spouse)}
               />
             ))}
           </div>

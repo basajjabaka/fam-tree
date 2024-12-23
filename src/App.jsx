@@ -3,10 +3,12 @@ import GetProfiles from "./components/GetProfiles";
 import HomePage from "./components/HomePage";
 import AdminPanel from "./components/AdminPanel";
 import ErrorPage from "./components/ErrorPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/admin" element={<AdminPanel />} />

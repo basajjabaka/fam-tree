@@ -5,16 +5,16 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const moment = require("moment");
+require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-app.use(express.static(path.join(__dirname, "../dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../dist", "index.html"));
-});
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// app.use(express.static(path.join(__dirname, "../dist")));
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "../dist/index.html"));
+// });
 
 // Ensure the uploads directory exists in the parent directory
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -22,8 +22,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-const uri =
-  "mongodburi";
+const uri = process.env.MONGO_URI;
 
 async function connectDB() {
   try {
@@ -84,6 +83,12 @@ app.get("/api/members/:id", async (req, res) => {
     const member = await FamilyMember.findById(id).populate("spouse children");
     if (!member) {
       return res.status(404).json({ message: "Member not found" });
+    }
+    if (!member.spouse) {
+      const parent = await FamilyMember.findOne({ children: id }).populate(
+        "spouse children"
+      );
+      return res.json(parent);
     }
     res.json(member);
   } catch (err) {

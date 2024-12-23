@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import moment from "moment";
 import "./profile.css";
 
-function Profile({ name, id, dob, phone, occupation, address }) {
+function Profile({ name, id, dob, phone, occupation, address, ismarried=true }) {
   return (
     <div className="card">
       <div className="card-body">
@@ -13,7 +13,7 @@ function Profile({ name, id, dob, phone, occupation, address }) {
         {occupation && <p className="card-text">Occupation: {occupation}</p>}
         {address && (
           <p className="card-text">
-            {address.split('\n').map((line, index) => (
+            {address.split("\n").map((line, index) => (
               <React.Fragment key={index}>
                 {line}
                 <br />
@@ -21,9 +21,11 @@ function Profile({ name, id, dob, phone, occupation, address }) {
             ))}
           </p>
         )}
-        <Link to={`/fam/${id}`} className="btn btn-primary">
-          View Family
-        </Link>
+        {ismarried && (
+          <Link to={`/fam/${id}`} className="btn btn-primary">
+            View Family
+          </Link>
+        )}
       </div>
     </div>
   );
