@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Profile from "./Profile";
 import ErrorPage from "./ErrorPage";
@@ -40,7 +40,9 @@ function GetProfiles() {
   }
 
   if (error) {
-    return <ErrorPage message={error} code={response ? response.status : 500} />;
+    return (
+      <ErrorPage message={error} code={response ? response.status : 500} />
+    );
   }
 
   if (!member) {

@@ -94,6 +94,7 @@ body {
   max-width: 600px;
   margin: 2rem auto;
   position: relative;
+  gap: 8px;
 }
 
 .search-form {
@@ -107,9 +108,10 @@ body {
   background-color: white;
   border: 2px solid #e5e7eb;
   border-radius: 50px;
-  padding: 4px 4px 4px 16px;
+  padding: 5px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 40px;
   gap: 8px;
 }
 
@@ -120,16 +122,19 @@ body {
 
 .search-icon {
   color: #6b7280;
-  margin-right: 8px;
+  margin: 0 16px;
+  width: 24px;
+  height: 24px;
 }
 
 .search-input {
-  flex-grow: 1;
+  flex: 1;
   border: none;
-  padding: 12px 8px;
+  padding: 0 16px;
   font-size: 16px;
   background: transparent;
   outline: none;
+  height: 100%;
   margin-right: 8px;
 }
 
@@ -142,17 +147,18 @@ body {
   color: white;
   border: none;
   border-radius: 50px;
-  padding: 10px 15px;
-  font-size: 15px;
+  height: calc(100% - 8px);
+  margin-right: 4px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 100px;
-  margin-left: auto;
-  margin-right: 4px;
+  min-width: 140px;
+  max-width: 25%;
+  padding: 0 24px;
 }
 
 .search-button:hover {
@@ -206,9 +212,6 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   border-bottom: 1px solid #f3f4f6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .dropdown-item:last-child {
@@ -217,6 +220,21 @@ body {
 
 .dropdown-item:hover {
   background-color: #f8fafc;
+}
+
+
+@media (max-width: 640px) {
+  .search-container {
+    max-width: 90%;
+  }
+
+  .search-input-wrapper {
+    height: 40px;
+  }
+
+  .search-button {
+    min-width: 100px;
+  }
 }
 
 .dropdown-item-name {

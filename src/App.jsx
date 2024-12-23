@@ -11,7 +11,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/fam/:id" element={<GetProfiles />} />
-        <Route path="*" element={<ErrorPage message={"Page Not Found"}/>} />
+        <Route path="*" element={<ErrorPage message={"Page Not Found"} />} />
       </Routes>
     </Router>
   );
