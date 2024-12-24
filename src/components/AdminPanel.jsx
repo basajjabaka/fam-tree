@@ -17,7 +17,7 @@ function AdminPanel() {
     occupation: "",
     address: "",
     spouse: "",
-    parent: "", // Added parent field
+    parent: "",
     children: [],
   });
   const [editingId, setEditingId] = useState(null);

@@ -12,9 +12,6 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(express.static(path.join(__dirname, "../dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
-});
 
 // Ensure the uploads directory exists in the parent directory
 const uploadsDir = path.join(__dirname, "../uploads");
@@ -262,6 +259,10 @@ app.get("/api/search", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
 app.listen(5000, () => {
