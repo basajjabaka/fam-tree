@@ -14,10 +14,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../dist")));
 
 const uri = process.env.MONGO_URI;
-const netlifyFunctionUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:8888/.netlify/functions/upload"
-    : process.env.NETLIFY_FUNCTION_URL;
+const netlifyFunctionUrl = process.env.NETLIFY_FUNCTION_URL;
 
 async function connectDB() {
   try {
