@@ -5,21 +5,16 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const moment = require("moment");
+const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(express.static(path.join(__dirname, "../dist")));
 
-// Ensure the uploads directory exists in the parent directory
-const uploadsDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
-
 const uri = process.env.MONGO_URI;
+const netlifyFunctionUrl = process.env.NETLIFY_FUNCTION_URL;
 
 async function connectDB() {
   try {
@@ -34,15 +29,7 @@ async function connectDB() {
 
 connectDB();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const FamilyMemberSchema = new mongoose.Schema({
@@ -99,7 +86,20 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
     console.log("Request body:", req.body);
     const { name, dob, phone, occupation, address, spouse, parent, children } =
       req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : "";
+    let image = "";
+    if (req.file) {
+      const response = await axios.post(netlifyFunctionUrl, {
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+      });
+      const { uploadUrl, blobUrl } = response.data;
+      await axios.put(uploadUrl, req.file.buffer, {
+        headers: {
+          "Content-Type": req.file.mimetype,
+        },
+      });
+      image = blobUrl;
+    }
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) {
       throw new Error("Invalid date format");
@@ -143,25 +143,25 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
     console.log("Request body:", req.body);
     const { name, dob, phone, occupation, address, spouse, parent, children } =
       req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+    let image = req.body.image;
+    if (req.file) {
+      const response = await axios.post(netlifyFunctionUrl, {
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+      });
+      const { uploadUrl, blobUrl } = response.data;
+      await axios.put(uploadUrl, req.file.buffer, {
+        headers: {
+          "Content-Type": req.file.mimetype,
+        },
+      });
+      image = blobUrl;
+    }
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) {
       throw new Error("Invalid date format");
     }
 
-    // Find the existing member to get the old image path
-    const existingMember = await FamilyMember.findById(req.params.id);
-    if (!existingMember) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-
-    // Delete the old image file if a new image is uploaded
-    if (req.file && existingMember.image) {
-      const oldImagePath = path.join(__dirname, "..", existingMember.image);
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-      }
-    }
     const updatedMember = await FamilyMember.findByIdAndUpdate(
       req.params.id,
       {
@@ -228,13 +228,6 @@ app.delete("/api/members/:id", async (req, res) => {
       { children: deletedMember._id },
       { $pull: { children: deletedMember._id } }
     );
-
-    if (deletedMember.image) {
-      const imagePath = path.join(__dirname, "..", deletedMember.image);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
 
     res.json(deletedMember);
   } catch (err) {
