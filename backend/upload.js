@@ -1,8 +1,8 @@
+const fetch = require("node-fetch");
 require("dotenv").config();
 
 exports.handler = async (event, context) => {
   try {
-    const fetch = (await import("node-fetch")).default;
     const { fileName, fileType } = JSON.parse(event.body);
     const response = await fetch(
       `${process.env.NETLIFY_BLOB_URL}/.netlify/functions/blob`,
