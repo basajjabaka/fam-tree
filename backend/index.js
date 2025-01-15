@@ -14,8 +14,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "../dist")));
 
 const uri = process.env.MONGO_URI;
-const netlifyBlobUrl = process.env.NETLIFY_BLOB_URL;
-const netlifyAccessToken = process.env.NETLIFY_ACCESS_TOKEN;
+const netlifyFunctionUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:8888/.netlify/functions/upload"
+    : process.env.NETLIFY_FUNCTION_URL;
 
 async function connectDB() {
   try {
@@ -89,27 +91,11 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       req.body;
     let image = "";
     if (req.file) {
-      const fetch = (await import("node-fetch")).default;
-      const response = await fetch(
-        `${netlifyBlobUrl}/.netlify/functions/blob`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${netlifyAccessToken}`,
-          },
-          body: JSON.stringify({
-            operation: "create",
-            path: req.file.originalname,
-            contentType: req.file.mimetype,
-          }),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create blob");
-      }
-      const { uploadUrl, blobUrl } = data;
+      const response = await axios.post(netlifyFunctionUrl, {
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+      });
+      const { uploadUrl, blobUrl } = response.data;
       await axios.put(uploadUrl, req.file.buffer, {
         headers: {
           "Content-Type": req.file.mimetype,
@@ -162,27 +148,11 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       req.body;
     let image = req.body.image;
     if (req.file) {
-      const fetch = (await import("node-fetch")).default;
-      const response = await fetch(
-        `${netlifyBlobUrl}/.netlify/functions/blob`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${netlifyAccessToken}`,
-          },
-          body: JSON.stringify({
-            operation: "create",
-            path: req.file.originalname,
-            contentType: req.file.mimetype,
-          }),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create blob");
-      }
-      const { uploadUrl, blobUrl } = data;
+      const response = await axios.post(netlifyFunctionUrl, {
+        fileName: req.file.originalname,
+        fileType: req.file.mimetype,
+      });
+      const { uploadUrl, blobUrl } = response.data;
       await axios.put(uploadUrl, req.file.buffer, {
         headers: {
           "Content-Type": req.file.mimetype,
