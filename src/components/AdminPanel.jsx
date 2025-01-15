@@ -142,7 +142,7 @@ function AdminPanel() {
       occupation: member.occupation || "",
       address: member.address || "",
       spouse: member.spouse ? member.spouse._id : "",
-      parent: "",
+      parent: "", // Reset parent field
       children: member.children.map((child) => child._id),
     });
     setEditingId(member._id);
