@@ -66,16 +66,17 @@ app.get("/api/members", async (req, res) => {
 
 app.get("/api/members/:id", async (req, res) => {
   try {
-    const member = await FamilyMember.findById(req.params.id).populate(
+    let member = await FamilyMember.findById(req.params.id).populate(
       "spouse children"
     );
     if (!member) return res.status(404).json({ message: "Member not found" });
     if (!member.spouse) {
-      const parent = await FamilyMember.findOne({ children: id }).populate(
-        "spouse children"
-      );
+      const parent = await FamilyMember.findOne({
+        children: req.params.id,
+      }).populate("spouse children");
       member = parent;
     }
+
     // Generate full URL for image
     const memberWithUrl = {
       ...member.toObject(),
