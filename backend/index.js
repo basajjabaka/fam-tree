@@ -70,6 +70,12 @@ app.get("/api/members/:id", async (req, res) => {
       "spouse children"
     );
     if (!member) return res.status(404).json({ message: "Member not found" });
+    if (!member.spouse) {
+      const parent = await FamilyMember.findOne({ children: id }).populate(
+        "spouse children"
+      );
+      member = parent;
+    }
     // Generate full URL for image
     const memberWithUrl = {
       ...member.toObject(),
@@ -85,9 +91,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
   try {
     const { name, dob, phone, occupation, address, spouse, children } =
       req.body;
-    console.log(dob);
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
-    console.log(parsedDob);
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
 
     let imageFileName = "";
@@ -107,10 +111,18 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
     });
     await newMember.save();
 
-    if (spouse)
+    if (spouse) {
       await FamilyMember.findByIdAndUpdate(spouse, {
+        $addToSet: { children: { $each: newMember.children } },
+        spouse: newMember._id,
+        image: image,
+      });
+    }
+    if (parent) {
+      await FamilyMember.findByIdAndUpdate(parent, {
         $addToSet: { children: newMember._id },
       });
+    }
 
     res.status(201).json(newMember);
   } catch (err) {
@@ -131,6 +143,13 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       imageFileName = await uploadImage(req.file.buffer);
     }
 
+    const existingMember = await FamilyMember.findById(req.params.id);
+
+    // Delete the old image file if a new image is uploaded
+    if (req.file && existingMember.image) {
+      await deleteImage(existingMember.image);
+    }
+
     const updatedMember = await FamilyMember.findByIdAndUpdate(
       req.params.id,
       {
@@ -149,10 +168,20 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
     if (!updatedMember)
       return res.status(404).json({ message: "Member not found" });
 
-    if (spouse)
+    if (spouse) {
       await FamilyMember.findByIdAndUpdate(spouse, {
+        $set: {
+          children: updatedMember.children,
+          spouse: updatedMember._id,
+          image: image,
+        },
+      });
+    }
+    if (parent) {
+      await FamilyMember.findByIdAndUpdate(parent, {
         $addToSet: { children: updatedMember._id },
       });
+    }
 
     res.json(updatedMember);
   } catch (err) {

@@ -10,10 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@cloudinary/react": "^1.13.1",
-    "@cloudinary/url-gen": "^1.21.0",
     "cloudinary": "^2.5.1",
-    "cloudinary-core": "^2.13.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
