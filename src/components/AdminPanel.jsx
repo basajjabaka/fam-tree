@@ -87,19 +87,16 @@ function AdminPanel() {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
     const formData = new FormData();
-    console.log("Form data before appending to FormData:", form);
-
-    for (const key in form) {
-      if (form[key] instanceof File) {
-        formData.append(key, form[key]);
-      } else {
-        formData.append(key, form[key] || "");
-      }
-    }
-
-    // Log the FormData entries
-    for (let pair of formData.entries()) {
-      console.log(pair[0] + ": " + pair[1]);
+    formData.append("name", form.name);
+    formData.append("dob", form.dob);
+    formData.append("phone", form.phone);
+    formData.append("occupation", form.occupation);
+    formData.append("address", form.address);
+    formData.append("spouse", form.spouse);
+    formData.append("parent", form.parent);
+    formData.append("children", form.children.join(","));
+    if (form.image) {
+      formData.append("image", form.image);
     }
 
     const url = editingId
@@ -112,8 +109,10 @@ function AdminPanel() {
         method,
         body: formData,
       });
+
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Network response was not ok");
       }
       setForm({
         name: "",
@@ -123,13 +122,14 @@ function AdminPanel() {
         occupation: "",
         address: "",
         spouse: "",
-        parent: "", // Reset parent field
+        parent: "",
         children: [],
       });
       setEditingId(null);
       fetchMembers();
-    } catch (error) {
-      console.error("Submit form failed:", error);
+    } catch (fetchError) {
+      console.error("Submit form failed:", fetchError);
+      alert(fetchError.message);
     }
   };
 
@@ -227,12 +227,7 @@ function AdminPanel() {
           onChange={handleChange}
           placeholder="Address"
         />
-        <input
-          name="image"
-          type="file"
-          onChange={handleChange}
-          placeholder="Image"
-        />
+        <input name="image" type="file" onChange={handleChange} />
         <div className="selects">
           <select
             name="spouse"

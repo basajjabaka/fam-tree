@@ -12,11 +12,7 @@ function HomePage() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
-  const userIds = [
-    "6766874803208904176ad60c",
-    "6766c645b21d6e73b029068d",
-    "6766cd7edb5c1b6cd1540a84",
-  ];
+  const userIds = import.meta.env.VITE_USER_IDS.split(",");
 
   useEffect(() => {
     const handleScroll = () => {

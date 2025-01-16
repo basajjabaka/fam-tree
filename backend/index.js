@@ -1,31 +1,27 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 const moment = require("moment");
+const multer = require("multer");
+const {
+  uploadImage,
+  deleteImage,
+  constructImageUrl,
+} = require("./cloudinaryService");
+
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(express.static(path.join(__dirname, "../dist")));
-
-// Ensure the uploads directory exists in the parent directory
-const uploadsDir = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
 
 const uri = process.env.MONGO_URI;
 
 async function connectDB() {
   try {
-    await mongoose.connect(uri, {
-      dbName: "ancheryfamily",
-    });
+    await mongoose.connect(uri, { dbName: process.env.DB_NAME });
     console.log("Connected to DB");
   } catch (err) {
     console.error(err);
@@ -34,24 +30,16 @@ async function connectDB() {
 
 connectDB();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const FamilyMemberSchema = new mongoose.Schema({
   name: { type: String, required: true },
   dob: { type: Date, required: true },
-  phone: { type: String, required: false },
-  image: { type: String, required: false },
-  occupation: { type: String, required: false },
-  address: { type: String, required: false },
+  phone: { type: String },
+  image: { type: String }, // Store image file name from Cloudinary
+  occupation: { type: String },
+  address: { type: String },
   spouse: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "FamilyMember",
@@ -65,7 +53,12 @@ const FamilyMember = mongoose.model("FamilyMember", FamilyMemberSchema);
 app.get("/api/members", async (req, res) => {
   try {
     const members = await FamilyMember.find().populate("spouse children");
-    res.json(members);
+    // Generate full URLs for images
+    const membersWithUrls = members.map((member) => ({
+      ...member.toObject(),
+      image: member.image ? constructImageUrl(member.image) : null,
+    }));
+    res.json(membersWithUrls);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -73,166 +66,123 @@ app.get("/api/members", async (req, res) => {
 
 app.get("/api/members/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-    const member = await FamilyMember.findById(id).populate("spouse children");
-    if (!member) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-    if (!member.spouse) {
-      const parent = await FamilyMember.findOne({ children: id }).populate(
-        "spouse children"
-      );
-      return res.json(parent);
-    }
-    res.json(member);
+    const member = await FamilyMember.findById(req.params.id).populate(
+      "spouse children"
+    );
+    if (!member) return res.status(404).json({ message: "Member not found" });
+    // Generate full URL for image
+    const memberWithUrl = {
+      ...member.toObject(),
+      image: member.image ? constructImageUrl(member.image) : null,
+    };
+    res.json(memberWithUrl);
   } catch (err) {
-    console.log(err);
     res.status(500).json({ message: err.message });
   }
 });
 
 app.post("/api/members", upload.single("image"), async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    const { name, dob, phone, occupation, address, spouse, parent, children } =
+    const { name, dob, phone, occupation, address, spouse, children } =
       req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : "";
+    console.log(dob);
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
-    if (!parsedDob || isNaN(parsedDob)) {
-      throw new Error("Invalid date format");
+    console.log(parsedDob);
+    if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
+
+    let imageFileName = "";
+    if (req.file) {
+      imageFileName = await uploadImage(req.file.buffer);
     }
+
     const newMember = new FamilyMember({
       name,
       dob: parsedDob,
       phone,
-      image,
+      image: imageFileName,
       occupation,
       address,
-      spouse: spouse || null,
+      spouse,
       children: children ? children.split(",") : [],
     });
     await newMember.save();
 
-    // Update spouse's children list and spouse's spouse
-    if (spouse) {
+    if (spouse)
       await FamilyMember.findByIdAndUpdate(spouse, {
-        $addToSet: { children: { $each: newMember.children } },
-        spouse: newMember._id,
-        image: image,
-      });
-    }
-
-    if (parent) {
-      await FamilyMember.findByIdAndUpdate(parent, {
         $addToSet: { children: newMember._id },
       });
-    }
 
     res.status(201).json(newMember);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(400).json({ message: err.message });
   }
 });
 
 app.put("/api/members/:id", upload.single("image"), async (req, res) => {
   try {
-    console.log("Request body:", req.body);
-    const { name, dob, phone, occupation, address, spouse, parent, children } =
+    const { name, dob, phone, occupation, address, spouse, children } =
       req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
-    if (!parsedDob || isNaN(parsedDob)) {
-      throw new Error("Invalid date format");
+    if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
+
+    let imageFileName = req.body.image;
+    if (req.file) {
+      imageFileName = await uploadImage(req.file.buffer);
     }
 
-    // Find the existing member to get the old image path
-    const existingMember = await FamilyMember.findById(req.params.id);
-    if (!existingMember) {
-      return res.status(404).json({ message: "Member not found" });
-    }
-
-    // Delete the old image file if a new image is uploaded
-    if (req.file && existingMember.image) {
-      const oldImagePath = path.join(__dirname, "..", existingMember.image);
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-      }
-    }
     const updatedMember = await FamilyMember.findByIdAndUpdate(
       req.params.id,
       {
         name,
         dob: parsedDob,
         phone,
-        image: image ? image : null,
+        image: imageFileName,
         occupation,
         address,
-        spouse: spouse || null,
+        spouse,
         children: children ? children.split(",") : [],
       },
       { new: true }
     );
 
-    if (!updatedMember) {
+    if (!updatedMember)
       return res.status(404).json({ message: "Member not found" });
-    }
 
-    // Update spouse's children list and spouse's spouse
-    if (spouse) {
+    if (spouse)
       await FamilyMember.findByIdAndUpdate(spouse, {
-        $set: {
-          children: updatedMember.children,
-          spouse: updatedMember._id,
-          image: image,
-        },
-      });
-    }
-
-    if (parent) {
-      await FamilyMember.findByIdAndUpdate(parent, {
         $addToSet: { children: updatedMember._id },
       });
-    }
 
     res.json(updatedMember);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(400).json({ message: err.message });
   }
 });
 
 app.delete("/api/members/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-    const deletedMember = await FamilyMember.findByIdAndDelete(id);
-    if (!deletedMember) {
+    const deletedMember = await FamilyMember.findByIdAndDelete(req.params.id);
+    if (!deletedMember)
       return res.status(404).json({ message: "Member not found" });
-    }
 
-    // Remove the member from the spouse's children list and clear spouse's spouse
-    if (deletedMember.spouse) {
+    if (deletedMember.spouse)
       await FamilyMember.findByIdAndUpdate(deletedMember.spouse, {
         $pull: { children: deletedMember._id },
         $unset: { spouse: "" },
       });
-    }
-
     await FamilyMember.updateMany(
       { children: deletedMember._id },
       { $pull: { children: deletedMember._id } }
     );
 
+    // Delete image from Cloudinary if image file name exists
     if (deletedMember.image) {
-      const imagePath = path.join(__dirname, "..", deletedMember.image);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
+      try {
+        await deleteImage(deletedMember.image);
+      } catch (cloudinaryErr) {
+        console.error("Error deleting image from Cloudinary:", cloudinaryErr);
       }
     }
 
@@ -242,11 +192,10 @@ app.delete("/api/members/:id", async (req, res) => {
   }
 });
 
-// Search endpoint
 app.get("/api/search", async (req, res) => {
   try {
     const { query } = req.query;
-    const searchRegex = new RegExp(query, "i"); // Case-insensitive search
+    const searchRegex = new RegExp(query, "i");
     const members = await FamilyMember.find({
       $or: [
         { name: searchRegex },
@@ -255,16 +204,19 @@ app.get("/api/search", async (req, res) => {
         { address: searchRegex },
       ],
     }).populate("spouse children");
-    res.json(members);
+    // Generate full URLs for images
+    const membersWithUrls = members.map((member) => ({
+      ...member.toObject(),
+      image: member.image ? constructImageUrl(member.image) : null,
+    }));
+    res.json(membersWithUrls);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
-});
+app.get("*", (req, res) =>
+  res.sendFile(path.join(__dirname, "../dist/index.html"))
+);
 
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
-});
+app.listen(5000, () => console.log("Server is running on port 5000"));
