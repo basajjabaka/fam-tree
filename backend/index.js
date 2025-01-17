@@ -90,7 +90,7 @@ app.get("/api/members/:id", async (req, res) => {
 
 app.post("/api/members", upload.single("image"), async (req, res) => {
   try {
-    const { name, dob, phone, occupation, address, spouse, children } =
+    const { name, dob, phone, occupation, address, spouse, parent, children } =
       req.body;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
@@ -116,7 +116,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       await FamilyMember.findByIdAndUpdate(spouse, {
         $addToSet: { children: { $each: newMember.children } },
         spouse: newMember._id,
-        image: image,
+        image: imageFileName,
       });
     }
     if (parent) {
@@ -134,7 +134,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
 
 app.put("/api/members/:id", upload.single("image"), async (req, res) => {
   try {
-    const { name, dob, phone, occupation, address, spouse, children } =
+    const { name, dob, phone, occupation, address, spouse, parent, children } =
       req.body;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
@@ -174,7 +174,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
         $set: {
           children: updatedMember.children,
           spouse: updatedMember._id,
-          image: image,
+          image: imageFileName,
         },
       });
     }

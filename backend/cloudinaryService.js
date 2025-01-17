@@ -22,10 +22,14 @@ const uploadImage = (imageBuffer) => {
       (error, result) => {
         if (result && result.public_id) {
           console.log(result.public_id);
-          return resolve(result.public_id); // Return the file name (public_id)
+          return resolve(result.public_id);
         }
-        console.log(error.message);
-        return reject({ message: error.message });
+        if (error) {
+          console.log(error.message);
+          return reject({ message: error.message });
+        } else {
+          return reject({ message: "Unknown error occurred during upload" });
+        }
       }
     );
 

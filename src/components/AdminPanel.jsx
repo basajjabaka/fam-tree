@@ -92,11 +92,15 @@ function AdminPanel() {
     formData.append("phone", form.phone);
     formData.append("occupation", form.occupation);
     formData.append("address", form.address);
-    formData.append("spouse", form.spouse);
-    formData.append("parent", form.parent);
+    if (form.spouse) {
+      formData.append("spouse", form.spouse);
+    }
+    if (form.parent) {
+      formData.append("parent", form.parent);
+    }
     formData.append("children", form.children.join(","));
     if (form.image) {
-      formData.append("image", form.image);
+      formData.append("image", form.image ? form.image : null);
     }
 
     const url = editingId
