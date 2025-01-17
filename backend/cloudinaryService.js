@@ -45,8 +45,12 @@ const deleteImage = (fileName) => {
         console.log(`Deleted image: ${fileName}`);
         return resolve(result);
       }
-      console.log(error.message);
-      return reject({ message: error.message });
+      if (error) {
+        console.log(error.message);
+        return reject({ message: error.message });
+      } else {
+        return reject({ message: "Unknown error occurred during delete" });
+      }
     });
   });
 };
