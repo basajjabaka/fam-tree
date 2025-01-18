@@ -101,11 +101,11 @@ button.btn-clear:hover {
   background-color: #ff2222;
 }
 
-button[type="submit"] {
+button.btn-submit {
   background-color: #28a745;
 }
 
-button[type="submit"]:hover {
+button.btn-submit:hover {
   background-color: #64ba52;
 }
 

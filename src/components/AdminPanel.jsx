@@ -297,7 +297,9 @@ function AdminPanel() {
         <button type="button" className="btn-clear" onClick={handleClearChildren}>
           Clear Children
         </button> */}
-        <button type="submit">{editingId ? "Update" : "Add"} Member</button>
+        <button type="submit" className="btn-submit">
+          {editingId ? "Update" : "Add"} Member
+        </button>
       </form>
       <input
         type="text"

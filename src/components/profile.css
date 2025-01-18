@@ -14,7 +14,8 @@
 .family-photo {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  padding-bottom: 56.25%;
+  margin-bottom: 10px;
   overflow: hidden;
   border-radius: 8px;
 }
