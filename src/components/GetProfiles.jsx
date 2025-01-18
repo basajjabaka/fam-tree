@@ -55,11 +55,22 @@ function GetProfiles() {
   return (
     <div className="container">
       <h1>{member.name}'s Family</h1>
+      {member.location && (
+        <a
+          href={member.location}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-location"
+        >
+          <i class="bi bi-geo-alt-fill" /> View Location
+        </a>
+      )}
       {member.image && (
         <div className="family-photo">
           <img src={member.image} alt={`${member.name}'s Family`} />
         </div>
       )}
+      {member.about && <p className="about">{member.about}</p>}
       <div className="profile-container">
         <Profile
           key={member._id}

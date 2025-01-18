@@ -19,6 +19,8 @@ function AdminPanel() {
     spouse: "",
     parent: "",
     children: [],
+    location: "",
+    about: "",
   });
   const [editingId, setEditingId] = useState(null);
 
@@ -92,6 +94,8 @@ function AdminPanel() {
     formData.append("phone", form.phone);
     formData.append("occupation", form.occupation);
     formData.append("address", form.address);
+    formData.append("location", form.location);
+    formData.append("about", form.about);
     if (form.spouse) {
       formData.append("spouse", form.spouse);
     }
@@ -128,6 +132,8 @@ function AdminPanel() {
         spouse: "",
         parent: "",
         children: [],
+        location: "",
+        about: "",
       });
       setEditingId(null);
       fetchMembers();
@@ -146,8 +152,10 @@ function AdminPanel() {
       occupation: member.occupation || "",
       address: member.address || "",
       spouse: member.spouse ? member.spouse._id : "",
-      parent: "", // Reset parent field
+      parent: "",
       children: member.children.map((child) => child._id),
+      location: member.location || "",
+      about: member.about || "",
     });
     setEditingId(member._id);
   };
@@ -231,6 +239,20 @@ function AdminPanel() {
           onChange={handleChange}
           placeholder="Address"
         />
+        <input
+          name="location"
+          type="text"
+          value={form.location}
+          onChange={handleChange}
+          placeholder="location"
+        />
+        <textarea
+          name="about"
+          value={form.about}
+          onInput={handleAutoResize}
+          onChange={handleChange}
+          placeholder="About Family"
+        />
         <input name="image" type="file" onChange={handleChange} />
         <div className="selects">
           <select
@@ -260,7 +282,7 @@ function AdminPanel() {
             ))}
           </select>
         </div>
-        <select
+        {/* <select
           name="children"
           value={form.children}
           onChange={handleChange}
@@ -272,9 +294,9 @@ function AdminPanel() {
             </option>
           ))}
         </select>
-        <button type="button" onClick={handleClearChildren}>
+        <button type="button" className="btn-clear" onClick={handleClearChildren}>
           Clear Children
-        </button>
+        </button> */}
         <button type="submit">{editingId ? "Update" : "Add"} Member</button>
       </form>
       <input

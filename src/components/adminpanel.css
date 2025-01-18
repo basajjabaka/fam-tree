@@ -93,12 +93,30 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+button.btn-clear {
+  background-color: #c70000;
+}
+
+button.btn-clear:hover {
+  background-color: #ff2222;
+}
+
+button[type="submit"] {
+  background-color: #28a745;
+}
+
+button[type="submit"]:hover {
+  background-color: #64ba52;
+}
 
 /* Member list */
 ul.member-list {
+  display: flex;
+  flex-direction: column;
   list-style: none;
   padding: 0;
   max-height: 610px;
+  width: 100%;
   overflow-y: auto;
   border: 1px solid #ccc;
   border-radius: 4px;

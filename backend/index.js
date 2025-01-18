@@ -46,6 +46,8 @@ const FamilyMemberSchema = new mongoose.Schema({
     default: null,
   },
   children: [{ type: mongoose.Schema.Types.ObjectId, ref: "FamilyMember" }],
+  location: { type: String },
+  about: { type: String },
 });
 
 const FamilyMember = mongoose.model("FamilyMember", FamilyMemberSchema);
@@ -90,8 +92,18 @@ app.get("/api/members/:id", async (req, res) => {
 
 app.post("/api/members", upload.single("image"), async (req, res) => {
   try {
-    const { name, dob, phone, occupation, address, spouse, parent, children } =
-      req.body;
+    const {
+      name,
+      dob,
+      phone,
+      occupation,
+      address,
+      spouse,
+      parent,
+      children,
+      location,
+      about,
+    } = req.body;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
 
@@ -109,6 +121,8 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       address,
       spouse,
       children: children ? children.split(",") : [],
+      location,
+      about,
     });
     await newMember.save();
 
@@ -117,6 +131,8 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
         $addToSet: { children: { $each: newMember.children } },
         spouse: newMember._id,
         image: imageFileName,
+        location: location,
+        about: about,
       });
     }
     if (parent) {
@@ -134,8 +150,18 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
 
 app.put("/api/members/:id", upload.single("image"), async (req, res) => {
   try {
-    const { name, dob, phone, occupation, address, spouse, parent, children } =
-      req.body;
+    const {
+      name,
+      dob,
+      phone,
+      occupation,
+      address,
+      spouse,
+      parent,
+      children,
+      location,
+      about,
+    } = req.body;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
 
@@ -162,6 +188,8 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
         address,
         spouse,
         children: children ? children.split(",") : [],
+        location,
+        about,
       },
       { new: true }
     );
@@ -175,6 +203,8 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
           children: updatedMember.children,
           spouse: updatedMember._id,
           image: imageFileName,
+          location: location,
+          about: about,
         },
       });
     }
