@@ -119,9 +119,19 @@ function HomePage() {
                       setSearchQuery("");
                     }}
                   >
-                    <div className="dropdown-item-name">{result.name}</div>
-                    <div className="dropdown-item-dob">
-                      {moment(result.dob).format("DD-MM-YYYY")}
+                    {result.image && (
+                      <div className="dropdown-item-image">
+                        <img src={result.image} />
+                      </div>
+                    )}
+
+                    <div className="dropdown-item-content">
+                      <div className="dropdown-item-name">{result.name}</div>
+                      {result.phone && (
+                        <div className="dropdown-item-phone">
+                          {result.phone}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>
