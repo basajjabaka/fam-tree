@@ -3,7 +3,15 @@ import { Link } from "react-router-dom";
 import moment from "moment";
 import "./profile.css";
 
-function Profile({ name, id, dob, phone, occupation, address, ismarried=true }) {
+function Profile({
+  name,
+  id,
+  dob,
+  phone,
+  occupation,
+  address,
+  ismarried = true,
+}) {
   return (
     <div className="card">
       <div className="card-body">

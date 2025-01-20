@@ -9,6 +9,9 @@ const {
   deleteImage,
   constructImageUrl,
 } = require("./cloudinaryService");
+const calculateDistance = require("./location");
+const extractLatLngFromLink = require("./extractgmap");
+const { json } = require("stream/consumers");
 
 require("dotenv").config();
 
@@ -46,7 +49,12 @@ const FamilyMemberSchema = new mongoose.Schema({
     default: null,
   },
   children: [{ type: mongoose.Schema.Types.ObjectId, ref: "FamilyMember" }],
-  location: { type: String },
+  location: {
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: false,
+    },
+  },
   about: { type: String },
 });
 
@@ -55,12 +63,21 @@ const FamilyMember = mongoose.model("FamilyMember", FamilyMemberSchema);
 app.get("/api/members", async (req, res) => {
   try {
     const members = await FamilyMember.find().populate("spouse children");
-    // Generate full URLs for images
-    const membersWithUrls = members.map((member) => ({
-      ...member.toObject(),
-      image: member.image ? constructImageUrl(member.image) : null,
-    }));
-    res.json(membersWithUrls);
+
+    const membersWithDetails = members.map((member) => {
+      const location =
+        member.location?.coordinates?.length === 2
+          ? `https://www.google.com/maps?q=${member.location.coordinates[1]},${member.location.coordinates[0]}`
+          : null;
+
+      return {
+        ...member.toObject(),
+        image: member.image ? constructImageUrl(member.image) : null,
+        location: location,
+      };
+    });
+
+    res.json(membersWithDetails);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -79,12 +96,18 @@ app.get("/api/members/:id", async (req, res) => {
       member = parent;
     }
 
-    // Generate full URL for image
-    const memberWithUrl = {
+    const location =
+      member.location?.coordinates?.length === 2
+        ? `https://www.google.com/maps?q=${member.location.coordinates[1]},${member.location.coordinates[0]}`
+        : null;
+
+    const memberWithDetails = {
       ...member.toObject(),
       image: member.image ? constructImageUrl(member.image) : null,
+      location: location, // Add the location link
     };
-    res.json(memberWithUrl);
+
+    res.json(memberWithDetails);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -112,6 +135,12 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       imageFileName = await uploadImage(req.file.buffer);
     }
 
+    let coordinates = [];
+    if (location) {
+      const extractedLocation = await extractLatLngFromLink(location);
+      coordinates = [extractedLocation.lng, extractedLocation.lat];
+    }
+
     const newMember = new FamilyMember({
       name,
       dob: parsedDob,
@@ -121,7 +150,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       address,
       spouse,
       children: children ? children.split(",") : [],
-      location,
+      location: { coordinates },
       about,
     });
     await newMember.save();
@@ -177,6 +206,12 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       await deleteImage(existingMember.image);
     }
 
+    let coordinates = [];
+    if (location) {
+      const extractedLocation = await extractLatLngFromLink(location);
+      coordinates = [extractedLocation.lng, extractedLocation.lat];
+    }
+
     const updatedMember = await FamilyMember.findByIdAndUpdate(
       req.params.id,
       {
@@ -188,7 +223,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
         address,
         spouse,
         children: children ? children.split(",") : [],
-        location,
+        location: { coordinates },
         about,
       },
       { new: true }
@@ -272,6 +307,55 @@ app.get("/api/search", async (req, res) => {
     res.json(membersWithUrls);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+app.get("/api/nearby", async (req, res) => {
+  const { lat, lng } = req.query;
+  if (!lat || !lng) {
+    return res
+      .status(400)
+      .json({ message: "Latitude and longitude are required" });
+  }
+
+  try {
+    const members = await FamilyMember.find();
+    const nearbyMembers = members
+      .map((member) => {
+        if (
+          !member.location ||
+          !member.location.coordinates ||
+          member.location.coordinates.length !== 2
+        )
+          return null; // Skip members without valid coordinates
+
+        const [lon, lat] = member.location.coordinates;
+        const distance = calculateDistance(
+          parseFloat(lat),
+          parseFloat(lng),
+          lat,
+          lon
+        );
+
+        // Return the member only if the distance is valid
+        if (distance != null && !isNaN(distance)) {
+          return { ...member.toObject(), distance };
+        }
+        return null; // Skip members with invalid distance
+      })
+      .filter((member) => member !== null) // Filter out nulls (invalid members)
+      .sort((a, b) => a.distance - b.distance) // Sort by distance (closest first)
+      .map((member) => {
+        if (member.image) {
+          member.image = constructImageUrl(member.image);
+        }
+        return member;
+      });
+
+    res.json(nearbyMembers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching nearby family members" });
   }
 });
 
