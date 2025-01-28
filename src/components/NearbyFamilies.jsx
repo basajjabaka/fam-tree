@@ -1,36 +1,96 @@
 import React, { useState, useEffect } from "react";
 import "./nearbyfamilies.css";
 
+const Dialog = ({ isOpen, onClose, onConfirm }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="dialog-overlay">
+      <div className="dialog-content">
+        <h2>Location Access Required</h2>
+        <p>
+          To find families near you, we need access to your location. Please
+          click "Allow" when prompted by your browser.
+        </p>
+        <div className="dialog-buttons">
+          <button onClick={onClose} className="dialog-button cancel">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="dialog-button confirm">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const NearbyFamilies = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
 
-  // Function to get the user's current location
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          fetchNearbyFamilies(lat, lng);
-        },
-        (error) => {
-          setError(
-            "Failed to retrieve your location. Please enable location services."
-          );
-          console.error(error);
+  const handleLocationError = (error) => {
+    console.error("Geolocation error:", error);
+    let errorMessage = "";
+
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        // Check if using mobile browser
+        if (/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          errorMessage =
+            "Please enable location access in your device settings and refresh the page.";
+        } else {
+          errorMessage = "Please allow location access and refresh the page.";
         }
-      );
-    } else {
-      setError("Geolocation is not supported by this browser.");
+        break;
+      case error.POSITION_UNAVAILABLE:
+        errorMessage =
+          "Unable to detect your location. Please check your device settings.";
+        break;
+      case error.TIMEOUT:
+        errorMessage = "Location request timed out. Please try again.";
+        break;
+      default:
+        errorMessage = "An error occurred while getting your location.";
     }
+
+    setError(errorMessage);
+    setLoading(false);
   };
 
-  // Fetch nearby families using the current location
+  const getCurrentLocation = (isRetry = false) => {
+    if (!navigator.geolocation) {
+      setError("Location services are not supported by your browser.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        fetchNearbyFamilies(lat, lng);
+      },
+      handleLocationError,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  const handleEnableLocation = () => {
+    setShowLocationDialog(false);
+    getCurrentLocation(true);
+  };
+
   const fetchNearbyFamilies = async (lat, lng) => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
-    setLoading(true);
     setError("");
 
     try {
@@ -58,23 +118,41 @@ const NearbyFamilies = () => {
     }
   };
 
-  // Fetch nearby families on component mount
   useEffect(() => {
     getCurrentLocation();
-    console.log(members);
   }, []);
 
   return (
     <div className="nearby-families-container">
       <h1>Find Families Nearby</h1>
+      {error && (
+        <div className="error-message">
+          {error}
+          <button onClick={() => getCurrentLocation()} className="retry-button">
+            Try Again
+          </button>
+        </div>
+      )}
+      {loading && (
+        <div className="loading-message">Finding nearby families...</div>
+      )}
+
+      <Dialog
+        isOpen={showLocationDialog}
+        onClose={() => setShowLocationDialog(false)}
+        onConfirm={handleEnableLocation}
+      />
+
       <div className="member-list">
         {members.map((member) => (
           <div key={member._id} className="member-card">
-            <img
-              src={member.image}
-              alt={member.name}
-              className="member-image"
-            />
+            {member.image && (
+              <img
+                src={member.image}
+                alt={member.name}
+                className="member-image"
+              />
+            )}
             <div className="member-details">
               <div className="member-info">
                 <h3 className="member-name">{member.name}</h3>
@@ -88,7 +166,7 @@ const NearbyFamilies = () => {
                 rel="noopener noreferrer"
                 className="location-button"
               >
-                <i class="bi bi-geo-alt-fill" /> View Location
+                <i className="bi bi-geo-alt-fill" /> View Location
               </a>
             </div>
           </div>

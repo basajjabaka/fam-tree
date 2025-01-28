@@ -1,4 +1,4 @@
-const axios = require("axios");
+const puppeteer = require("puppeteer");
 
 /**
  * Extract latitude and longitude from a Google Maps link
@@ -7,8 +7,8 @@ const axios = require("axios");
  */
 async function extractLatLngFromLink(link) {
   const latLngRegex = /@(-?\d+\.\d+),(-?\d+\.\d+)/; // Matches @lat,lng
-  const placeRegex = /place\/(-?\d+\.\d+),(-?\d+\.\d+)/; // Matches /place/lat,lng
-  const queryRegex = /q=(-?\d+\.\d+),(-?\d+\.\d+)/; // Matches ?q=lat,lng
+  const placeRegex = /place\/(.*?)(-?\d+\.\d+),(-?\d+\.\d+)/; // Matches /place/ with optional place name before coordinates
+  const queryRegex = /q=(-?\d+\.\d+),(-?\d+\.\d+)/; // Matches?q=lat,lng
   const searchRegex = /search\/(-?\d+\.\d+),\s*(-?\d+\.\d+)/; // Matches /search/lat,lng
   const paramRegex = /([-+]?\d*\.\d+),([-+]?\d*\.\d+)(?=\s*(?:[?&]|$))/; // Matches lat,lng even with params after it
 
@@ -22,8 +22,11 @@ async function extractLatLngFromLink(link) {
       !queryRegex.test(link) &&
       !searchRegex.test(link)
     ) {
-      const response = await axios.get(link, { maxRedirects: 5 });
-      url = response.request.res.responseUrl;
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+      await page.goto(link, { waitUntil: "networkidle2" });
+      url = page.url();
+      await browser.close();
     }
 
     const match =

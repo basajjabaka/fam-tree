@@ -1,18 +1,33 @@
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const toRadians = (deg) => (deg * Math.PI) / 180;
-  const R = 6371; // Earth's radius in km
+const axios = require("axios");
+const { v4: uuidv4 } = require("uuid");
 
-  const dLat = toRadians(lat2 - lat1);
-  const dLon = toRadians(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+async function calculateRoadDistance(lat1, lon1, lat2, lon2) {
+  const apiKey = process.env.OLA_MAPS_API_KEY;
+  const url = `https://api.olamaps.io/routing/v1/distanceMatrix/basic?origins=${lat1},${lon1}&destinations=${lat2},${lon2}&api_key=${apiKey}`;
+  const requestId = uuidv4();
 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distance in km
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "X-Request-Id": requestId,
+      },
+    });
+    const data = response.data;
+
+    if (data.status === "SUCCESS") {
+      const element = data.rows[0].elements[0];
+      if (element.status === "OK") {
+        const distance = element.distance / 1000; // Convert meters to kilometers
+        return distance;
+      } else {
+        throw new Error(`Error from API: ${element.status}`);
+      }
+    } else {
+      throw new Error(`Error from API: ${data.status}`);
+    }
+  } catch (error) {
+    throw new Error(`Failed to calculate road distance: ${error.message}`);
+  }
 }
 
-module.exports = calculateDistance;
+module.exports = calculateRoadDistance;

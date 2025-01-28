@@ -9,9 +9,8 @@ const {
   deleteImage,
   constructImageUrl,
 } = require("./cloudinaryService");
-const calculateDistance = require("./location");
+const calculateRoadDistance = require("./location");
 const extractLatLngFromLink = require("./extractgmap");
-const { json } = require("stream/consumers");
 
 require("dotenv").config();
 
@@ -320,8 +319,8 @@ app.get("/api/nearby", async (req, res) => {
 
   try {
     const members = await FamilyMember.find();
-    const nearbyMembers = members
-      .map((member) => {
+    const nearbyMembers = await Promise.all(
+      members.map(async (member) => {
         if (
           !member.location ||
           !member.location.coordinates ||
@@ -330,7 +329,7 @@ app.get("/api/nearby", async (req, res) => {
           return null; // Skip members without valid coordinates
 
         const [lon, lat] = member.location.coordinates;
-        const distance = calculateDistance(
+        const distance = await calculateRoadDistance(
           parseFloat(lat),
           parseFloat(lng),
           lat,
@@ -343,6 +342,9 @@ app.get("/api/nearby", async (req, res) => {
         }
         return null; // Skip members with invalid distance
       })
+    );
+
+    const validMembers = nearbyMembers
       .filter((member) => member !== null) // Filter out nulls (invalid members)
       .sort((a, b) => a.distance - b.distance) // Sort by distance (closest first)
       .map((member) => {
@@ -352,7 +354,7 @@ app.get("/api/nearby", async (req, res) => {
         return member;
       });
 
-    res.json(nearbyMembers);
+    res.json(validMembers);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error fetching nearby family members" });
