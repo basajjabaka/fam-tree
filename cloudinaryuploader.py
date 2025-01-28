@@ -90,7 +90,7 @@ def upload(path, upload_preset):
 
 # Example Usage
 if __name__ == "__main__":
-    path_to_upload = r"C:\Users\noble\Documents\STANES\Project Files\Family-Tree\uploads"  # Replace with your path
+    path_to_upload = r"C:\Users\noble\Documents\STANES\Project Files\Malieakal Images\WEB_UPLOADS"  # Replace with your path
     cloudinary_upload_preset = os.getenv("CLOUDINARY_UPLOAD_PRESET")
 
     result = upload(path_to_upload, cloudinary_upload_preset)
