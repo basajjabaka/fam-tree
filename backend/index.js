@@ -329,12 +329,15 @@ app.get("/api/nearby", async (req, res) => {
           return null; // Skip members without valid coordinates
 
         const [lon, lat] = member.location.coordinates;
-        const distance = await calculateRoadDistance(
+        const distanceResponse = await calculateRoadDistance(
           parseFloat(lat),
           parseFloat(lng),
           lat,
           lon
         );
+
+        // Extract numeric distance from the response
+        const distance = parseFloat(distanceResponse);
 
         // Return the member only if the distance is valid
         if (distance != null && !isNaN(distance)) {

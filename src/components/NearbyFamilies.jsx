@@ -37,13 +37,9 @@ const NearbyFamilies = () => {
 
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        // Check if using mobile browser
-        if (/Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-          errorMessage =
-            "Please enable location access in your device settings and refresh the page.";
-        } else {
-          errorMessage = "Please allow location access and refresh the page.";
-        }
+        setShowLocationDialog(true); // Show dialog if permission is denied
+        errorMessage =
+          "Please enable location access in your device settings and refresh the page.";
         break;
       case error.POSITION_UNAVAILABLE:
         errorMessage =
@@ -118,10 +114,6 @@ const NearbyFamilies = () => {
     }
   };
 
-  useEffect(() => {
-    getCurrentLocation();
-  }, []);
-
   return (
     <div className="nearby-families-container">
       <h1>Find Families Nearby</h1>
@@ -135,6 +127,12 @@ const NearbyFamilies = () => {
       )}
       {loading && (
         <div className="loading-message">Finding nearby families...</div>
+      )}
+
+      {!loading && members.length === 0 && !error && (
+        <button onClick={getCurrentLocation} className="location-button">
+          Click Here
+        </button>
       )}
 
       <Dialog
@@ -157,7 +155,7 @@ const NearbyFamilies = () => {
               <div className="member-info">
                 <h3 className="member-name">{member.name}</h3>
                 <p className="member-distance">
-                  {member.distance.toFixed(2)} Km's away
+                  {member.distance.toFixed(2)} km away
                 </p>
               </div>
               <a
