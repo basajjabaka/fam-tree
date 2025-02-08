@@ -131,7 +131,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
 
     let imageFileName = "";
     if (req.file) {
-      imageFileName = await uploadImage(req.file.buffer);
+      imageFileName = await uploadImage(req.file.buffer, req.file.originalname);
     }
 
     let coordinates = [];
@@ -195,7 +195,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
 
     let imageFileName = req.body.image;
     if (req.file) {
-      imageFileName = await uploadImage(req.file.buffer);
+      imageFileName = await uploadImage(req.file.buffer, req.file.originalname);
     }
 
     const existingMember = await FamilyMember.findById(req.params.id);

@@ -13,19 +13,36 @@ const uploadOpts = {
   invalidate: true,
   resource_type: "auto",
   upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+  use_filename: true, // Preserve original filename
+  unique_filename: true, // Add unique identifier to prevent conflicts
 };
 
-const uploadImage = (imageBuffer) => {
+const uploadImage = (imageBuffer, originalFilename) => {
+  if (!originalFilename) {
+    return Promise.reject({ message: "Filename is required" });
+  }
+
+  // Clean the filename - remove special characters and spaces
+  const cleanFilename = originalFilename
+    .toLowerCase()
+    .replace(/[^a-z0-9.]/g, "_");
+
+  // Get filename without extension
+  const filename = cleanFilename.split(".")[0];
+
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      uploadOpts,
+      {
+        ...uploadOpts,
+        public_id: filename,
+      },
       (error, result) => {
         if (result && result.public_id) {
-          console.log(result.public_id);
+          console.log(`Uploaded as: ${result.public_id}`);
           return resolve(result.public_id);
         }
         if (error) {
-          console.log(error.message);
+          console.log(`Upload error: ${error.message}`);
           return reject({ message: error.message });
         } else {
           return reject({ message: "Unknown error occurred during upload" });
@@ -33,7 +50,6 @@ const uploadImage = (imageBuffer) => {
       }
     );
 
-    // Pipe the image buffer to the upload stream
     uploadStream.end(imageBuffer);
   });
 };

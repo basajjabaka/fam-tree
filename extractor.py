@@ -12,7 +12,7 @@ client = MongoClient(dburi)
 db = client["ancheryfamily"]
 collection = db["familymembers"]
 
-SHEET_NAME = ""# Excel Sheet name
+SHEET_NAME = "Anthony"# Excel Sheet name
 
 def clean_phone_number(phone):
     """Clean phone number by removing invalid values and returning empty string."""
@@ -74,7 +74,7 @@ for index, row in df.iterrows():
         dob_col = f'Date of Birth{i}'
         occupation_col = f'Occupation{i}'
         phone_col = f'Phone{i}'
-        image_col = f'Image'
+        image_col = 'Image'
 
         if name_col not in row or pd.isna(row[name_col]):
             break

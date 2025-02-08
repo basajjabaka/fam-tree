@@ -9,15 +9,18 @@ const Dialog = ({ isOpen, onClose, onConfirm }) => {
       <div className="dialog-content">
         <h2>Location Access Required</h2>
         <p>
-          To find families near you, we need access to your location. Please
-          click "Allow" when prompted by your browser.
+          Location access was denied. Please enable location permissions in your
+          browser settings and refresh the page.
         </p>
         <div className="dialog-buttons">
           <button onClick={onClose} className="dialog-button cancel">
-            Cancel
+            Close
           </button>
-          <button onClick={onConfirm} className="dialog-button confirm">
-            Continue
+          <button
+            onClick={() => window.location.reload()}
+            className="dialog-button confirm"
+          >
+            Refresh Page
           </button>
         </div>
       </div>
@@ -37,9 +40,8 @@ const NearbyFamilies = () => {
 
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        setShowLocationDialog(true); // Show dialog if permission is denied
-        errorMessage =
-          "Please enable location access in your device settings and refresh the page.";
+        setShowLocationDialog(true);
+        setError(""); // Clear error state
         break;
       case error.POSITION_UNAVAILABLE:
         errorMessage =
@@ -52,11 +54,11 @@ const NearbyFamilies = () => {
         errorMessage = "An error occurred while getting your location.";
     }
 
-    setError(errorMessage);
+    if (errorMessage) setError(errorMessage);
     setLoading(false);
   };
 
-  const getCurrentLocation = (isRetry = false) => {
+  const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       setError("Location services are not supported by your browser.");
       return;
@@ -80,11 +82,6 @@ const NearbyFamilies = () => {
     );
   };
 
-  const handleEnableLocation = () => {
-    setShowLocationDialog(false);
-    getCurrentLocation(true);
-  };
-
   const fetchNearbyFamilies = async (lat, lng) => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     setError("");
@@ -93,13 +90,8 @@ const NearbyFamilies = () => {
       const response = await fetch(
         `${apiUrl}/api/nearby?lat=${lat}&lng=${lng}`
       );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new TypeError("Received non-JSON response");
-      }
+      if (!response.ok) throw new Error("Network response was not ok");
+
       const data = await response.json();
       if (Array.isArray(data)) {
         setMembers(data);
@@ -117,28 +109,33 @@ const NearbyFamilies = () => {
   return (
     <div className="nearby-families-container">
       <h1>Find Families Nearby</h1>
-      {error && (
+
+      {error && !showLocationDialog && (
         <div className="error-message">
           {error}
-          <button onClick={() => getCurrentLocation()} className="retry-button">
+          <button onClick={getCurrentLocation} className="retry-button">
             Try Again
           </button>
         </div>
       )}
+
       {loading && (
         <div className="loading-message">Finding nearby families...</div>
       )}
 
       {!loading && members.length === 0 && !error && (
         <button onClick={getCurrentLocation} className="location-button">
-          Click Here
+          Find Families Near Me
         </button>
       )}
 
       <Dialog
         isOpen={showLocationDialog}
-        onClose={() => setShowLocationDialog(false)}
-        onConfirm={handleEnableLocation}
+        onClose={() => {
+          setShowLocationDialog(false);
+          setError("");
+        }}
+        onConfirm={() => window.location.reload()}
       />
 
       <div className="member-list">
@@ -155,7 +152,7 @@ const NearbyFamilies = () => {
               <div className="member-info">
                 <h3 className="member-name">{member.name}</h3>
                 <p className="member-distance">
-                  {member.distance.toFixed(2)} km away
+                  {member.distance?.toFixed(2)} km away
                 </p>
               </div>
               <a

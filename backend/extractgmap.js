@@ -39,7 +39,7 @@ async function extractLatLngFromLink(link) {
     if (match) {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[2]);
-      return { lat, lng };
+      return { lng, lat };
     } else {
       throw new Error("Latitude and longitude not found in the link");
     }
