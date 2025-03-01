@@ -12,7 +12,6 @@ function FamilyHistory() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentAudio, setCurrentAudio] = useState(null);
   const viteapibaseurl = import.meta.env.VITE_API_BASE_URL;
-  console.log(viteapibaseurl);
 
   // Cleanup audio when component unmounts
   useEffect(() => {
