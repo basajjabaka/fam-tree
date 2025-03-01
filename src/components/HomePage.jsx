@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, MapPin } from "lucide-react";
 import "./homepage.css";
 import UsersList from "./UsersList";
+import FamilyHistory from "./FamilyHistory"; // <-- Import the new component
 
 function HomePage() {
   const [isSticky, setIsSticky] = useState(false);
@@ -126,7 +127,7 @@ function HomePage() {
                   >
                     {result.image && (
                       <div className="dropdown-item-image">
-                        <img src={result.image} />
+                        <img src={result.image} alt={result.name} />
                       </div>
                     )}
 
@@ -144,6 +145,8 @@ function HomePage() {
             </div>
           )}
         </div>
+        <FamilyHistory />
+
         <UsersList ids={userIds} />
       </section>
     </div>

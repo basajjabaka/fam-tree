@@ -43,20 +43,18 @@ function UsersList({ ids }) {
   }
 
   return (
-    <div className="container">
-      <div className="profile-container">
-        {users.map((user) => (
-          <Profile
-            key={user._id}
-            name={user.name}
-            id={user._id}
-            dob={user.dob}
-            phone={user.phone}
-            occupation={user.occupation}
-            address={user.address}
-          />
-        ))}
-      </div>
+    <div className="profile-container">
+      {users.map((user) => (
+        <Profile
+          key={user._id}
+          name={user.name}
+          id={user._id}
+          dob={user.dob}
+          phone={user.phone}
+          occupation={user.occupation}
+          address={user.address}
+        />
+      ))}
     </div>
   );
 }

@@ -15,11 +15,17 @@ const extractLatLngFromLink = require("./extractgmap");
 require("dotenv").config();
 
 const app = express();
+const bodyParser = require("body-parser");
+const textToSpeech = require("@google-cloud/text-to-speech");
+const client = new textToSpeech.TextToSpeechClient();
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../dist")));
 
 const uri = process.env.MONGO_URI;
+const GOOGLE_APPLICATION_CREDENTIALS =
+  process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
 async function connectDB() {
   try {
@@ -361,6 +367,25 @@ app.get("/api/nearby", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error fetching nearby family members" });
+  }
+});
+
+app.post("/api/tts", async (req, res) => {
+  try {
+    const { text, languageCode } = req.body; // e.g., languageCode: 'ml-IN' for Malayalam
+    const request = {
+      input: { text },
+      voice: { languageCode, ssmlGender: "NEUTRAL" },
+      audioConfig: { audioEncoding: "MP3" },
+    };
+
+    const [response] = await client.synthesizeSpeech(request);
+    // Set the response content type and send the audio content
+    res.set("Content-Type", "audio/mpeg");
+    res.send(response.audioContent);
+  } catch (error) {
+    console.error("Error generating TTS:", error);
+    res.status(500).send("Error generating TTS");
   }
 });
 

@@ -1,3 +1,175 @@
+/* Updated Family History CSS */
+.history-card {
+  box-sizing: border-box;
+  width: 95%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.history-header {
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-header h3 {
+  margin: 0;
+  color: #05472b;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.chevron {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #64748b;
+}
+
+.chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.history-content {
+  padding: 1.5rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.language-toggle,
+.tts-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.language-toggle {
+  background: #f0f7ff;
+  color: #2563eb;
+}
+
+.language-toggle:hover {
+  background: #dbeafe;
+}
+
+.tts-button {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.tts-button:hover {
+  background: #e2e8f0;
+}
+
+.text-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.text-container p {
+  color: #334155;
+  line-height: 1.7;
+  font-size: 1rem;
+  margin: 0;
+  white-space: pre-wrap;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+  text-justify: inter-word;
+}
+
+/* Scrollbar Styling */
+.text-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.text-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.text-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .history-card {
+    width: 100%;
+    border-radius: 0;
+    margin: 0 auto;
+    box-shadow: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .container {
+    padding: 0;
+  }
+
+  .history-header {
+    padding: 1rem;
+  }
+
+  .history-content {
+    padding: 0 15px 15px 15px;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .language-toggle,
+  .tts-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .text-container {
+    overflow-x: hidden;
+    word-wrap: break-word;
+  }
+
+  .text-container p {
+    text-align-last: left;
+    hyphens: none;
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-card {
+    border-radius: 0;
+  }
+
+  .history-header {
+    border-radius: 0;
+  }
+}
+
 body {
   margin: 0;
   font-family: "Arial", sans-serif;

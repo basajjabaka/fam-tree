@@ -50,7 +50,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
-  justify-content: flex-start; /* Changed from center to flex-start */
+  justify-content: flex-start;
   width: 100%;
 }
 
