@@ -22,12 +22,12 @@ def clean_phone_number(phone):
 
 def clean_field(value):
     """Clean field by returning None if the value is NaN or empty."""
-    if pd.isna(value) or str(value).upper() in ['NAN', 'NIL', 'NONE', '']:
+    if pd.isna(value) or str(value).upper() in ['NAN', 'NIL', 'NONE','?', '']:
         return None
     return value
 
 # Load the data file
-file_path = Path(r'c:\Users\noble\Downloads\family Diary_Dec 2024.xlsx')
+file_path = Path(r'c:\Users\noble\Downloads\family Diary_Dec 2024_CC_Mar1st.xlsx')
 df = pd.read_excel(file_path, sheet_name=SHEET_NAME)
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 df = df.dropna(how='all')
@@ -84,12 +84,13 @@ for index, row in df.iterrows():
         
         # Handle phone number with the clean_phone_number function
         phone = clean_phone_number(row.get(phone_col, ""))
+        occupation = clean_field(row.get(occupation_col, None))
         
         member_data = {
             'name': (row[name_col]).strip(),
             'dob': pd.to_datetime(row.get(dob_col, None), dayfirst=True),
             'phone': phone,
-            'occupation': clean_field(row.get(occupation_col, None)),
+            'occupation': occupation,
             'address': current_address,
             'image': clean_field(row.get(image_col, None)),
             'spouse': None,
@@ -109,7 +110,8 @@ for index, row in df.iterrows():
             # Update member data, including empty children list
             update_data = {
                 "address": current_address if current_address else existing_member.get('address'),
-                "phone": phone,  # Update phone number
+                "phone": phone,# Update phone number
+                "occupation": occupation,# Update occupation
                 "children": []  # Reset children list
             }
             # Update the image only if a new image is provided

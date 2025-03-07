@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const path = require("path");
 const moment = require("moment");
 const multer = require("multer");
+const momentTimezone = require("moment-timezone");
 const {
   uploadImage,
   deleteImage,
@@ -15,7 +16,6 @@ const extractLatLngFromLink = require("./extractgmap");
 require("dotenv").config();
 
 const app = express();
-const bodyParser = require("body-parser");
 const textToSpeech = require("@google-cloud/text-to-speech");
 const client = new textToSpeech.TextToSpeechClient();
 
@@ -367,6 +367,44 @@ app.get("/api/nearby", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error fetching nearby family members" });
+  }
+});
+
+app.get("/api/members/birthdays/today", async (req, res) => {
+  try {
+    const today = momentTimezone().tz("Asia/Kolkata");
+    const todayDay = today.date();
+    const todayMonth = today.month() + 1; // Months are 0-indexed in JS
+
+    const birthdays = await FamilyMember.aggregate([
+      {
+        $project: {
+          name: 1,
+          dob: 1,
+          image: 1,
+          day: { $dayOfMonth: "$dob" },
+          month: { $month: "$dob" },
+        },
+      },
+      {
+        $match: {
+          day: todayDay,
+          month: todayMonth,
+        },
+      },
+    ]);
+
+    // Add image URLs and format dates
+    const formattedBirthdays = birthdays.map((member) => ({
+      ...member,
+      image: member.image ? constructImageUrl(member.image) : null,
+      dob: moment(member.dob).format("DD-MM-YYYY"), // Format for frontend
+    }));
+
+    res.json(formattedBirthdays);
+  } catch (error) {
+    console.error("Birthday error:", error);
+    res.status(500).json({ message: "Error fetching birthdays" });
   }
 });
 

@@ -5,18 +5,22 @@ import AdminPanel from "./components/AdminPanel";
 import NearbyFamilies from "./components/NearbyFamilies";
 import ErrorPage from "./components/ErrorPage";
 import ScrollToTop from "./components/ScrollToTop";
+import BirthdayNotification from "./components/BirthdayNotification";
 
 function App() {
   return (
     <Router>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/admin" element={<AdminPanel />} />
-        <Route path="/fam/:id" element={<GetProfiles />} />
-        <Route path="/nearby" element={<NearbyFamilies />} />
-        <Route path="*" element={<ErrorPage message={"Page Not Found"} />} />
-      </Routes>
+      <div>
+        <BirthdayNotification />
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/fam/:id" element={<GetProfiles />} />
+          <Route path="/nearby" element={<NearbyFamilies />} />
+          <Route path="*" element={<ErrorPage message={"Page Not Found"} />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
