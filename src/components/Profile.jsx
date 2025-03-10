@@ -16,7 +16,9 @@ function Profile({
     <div className="card">
       <div className="card-body">
         <h5 className="card-title">{name}</h5>
-        <p className="card-text">DOB: {moment(dob).format("DD-MM-YYYY")}</p>
+        {dob && (
+          <p className="card-text">DOB: {moment(dob).format("DD-MM-YYYY")}</p>
+        )}
         {phone && <p className="card-text">Phone: {phone}</p>}
         {occupation && <p className="card-text">Occupation: {occupation}</p>}
         {address && (
