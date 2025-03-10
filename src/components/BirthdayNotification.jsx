@@ -63,7 +63,7 @@ const BirthdayNotification = () => {
             <a href={`/fam/${user._id}`}>
               <div className="user-info" href={`/fam/${user._id}`}>
                 <h4>{user.name}</h4>
-                <p>{calculateAge(user.dob)} years old today!</p>
+                {/* <p>{calculateAge(user.dob)} years old today!</p> */}
               </div>
             </a>
           </div>
