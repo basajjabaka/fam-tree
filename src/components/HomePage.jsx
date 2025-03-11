@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Search, MapPin } from "lucide-react";
 import "./homepage.css";
 import UsersList from "./UsersList";
-import FamilyHistory from "./FamilyHistory"; // <-- Import the new component
+import FamilyHistory from "./FamilyHistory";
+import BirthdayNotification from "./BirthdayNotification";
 
 function HomePage() {
   const [isSticky, setIsSticky] = useState(false);
@@ -145,8 +146,8 @@ function HomePage() {
             </div>
           )}
         </div>
+        <BirthdayNotification />
         <FamilyHistory />
-
         <UsersList ids={userIds} />
       </section>
     </div>

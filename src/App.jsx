@@ -5,13 +5,11 @@ import AdminPanel from "./components/AdminPanel";
 import NearbyFamilies from "./components/NearbyFamilies";
 import ErrorPage from "./components/ErrorPage";
 import ScrollToTop from "./components/ScrollToTop";
-import BirthdayNotification from "./components/BirthdayNotification";
 
 function App() {
   return (
     <Router>
       <div>
-        <BirthdayNotification />
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />

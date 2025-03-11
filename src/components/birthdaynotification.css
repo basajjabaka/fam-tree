@@ -1,87 +1,89 @@
-.birthday-notification {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  padding: 20px;
-  width: 300px;
-  z-index: 2000;
-  animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+.birthday-card {
+  display: flex;
+  flex-direction: column;
+  width: 95%;
+  max-width: 1200px;
+  margin: 1rem auto 1rem;
+  background: #fff9f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.1);
   border: 1px solid #ffeeba;
-  background: linear-gradient(145deg, #fff9e6, #fff3d9);
+  padding: 1rem 1.5rem;
+  position: relative;
+  box-sizing: border-box;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+.birthday-content-container {
+  width: 100%;
+  max-width: 95%;
+  margin: 0 auto;
 }
 
 .birthday-header {
   display: flex;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 0.1rem;
   border-bottom: 1px solid #ffecb3;
-  padding-bottom: 10px;
+  padding-bottom: 1rem;
 }
 
 .birthday-header .icon {
-  font-size: 28px;
-  margin-right: 10px;
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
 }
 
 .birthday-header h3 {
   margin: 0;
-  color: #ff6b6b;
+  color: #e44d26;
+  font-size: 1.25rem;
   flex-grow: 1;
 }
 
 .close-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 1.5rem;
   color: #666;
   cursor: pointer;
   width: 40px;
   height: 40px;
-  padding: 5px;
-  transition: color 0.3s ease;
+  padding: 0 0.5rem;
+  transition: color 0.2s ease;
 }
 
 .close-btn:hover {
-  color: #ff4444;
+  color: #d33;
 }
 
 .birthday-item {
   display: flex;
   align-items: center;
-  padding: 10px 0;
+  padding: 0.75rem 0;
   animation: fadeIn 0.5s ease-in;
-}
-.birthday-item a {
   text-decoration: none;
 }
 
-@media (max-width: 768px) {
-  .birthday-notification {
-    width: calc(100% - 40px);
-    max-width: 300px;
-  }
+.birthday-item:hover {
+  background: rgba(255, 255, 255, 0.6);
 }
 
+/* @media (max-width: 768px) {
+  .birthday-card {
+    width: 90%;
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+
+  .birthday-content-container {
+    max-width: 90%;
+  }
+} */
+
 @media (max-width: 480px) {
-  .birthday-notification {
-    top: 10px;
-    right: 10px;
-    left: 10px;
-    padding: 15px;
-    width: calc(100% - 50px);
-    max-width: none;
+  .birthday-card {
+    width: 95%;
+    margin: 1rem auto;
+    padding: 1rem;
   }
 
   .birthday-header .icon {
