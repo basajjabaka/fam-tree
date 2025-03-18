@@ -71,7 +71,7 @@ function GetProfiles() {
         </div>
       )}
       {member.about && <p className="about">{member.about}</p>}
-      <div className="profile-container">
+      <div className="profile-container-main">
         <Profile
           key={member._id}
           name={member.name}

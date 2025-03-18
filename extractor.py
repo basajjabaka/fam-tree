@@ -22,12 +22,12 @@ def clean_phone_number(phone):
 
 def clean_field(value):
     """Clean field by returning None if the value is NaN or empty."""
-    if pd.isna(value) or str(value).upper() in ['NAN', 'NIL', 'NONE','?', '']:
+    if pd.isna(value) or str(value).upper() in ['NAN', 'NIL', 'NONE', "NaT",'?', '']:
         return None
     return value
 
 # Load the data file
-file_path = Path(r'c:\Users\noble\Downloads\family Diary_Dec 2024_CC_Mar1st.xlsx')
+file_path = Path(r'c:\Users\noble\Downloads\anchery_family.xlsx')
 df = pd.read_excel(file_path, sheet_name=SHEET_NAME)
 df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 df = df.dropna(how='all')
