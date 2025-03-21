@@ -274,6 +274,12 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .title, .subtitle {
+    top: 30%;
+  }
+}
+
 .header-box {
   position: fixed;
   top: 0;
