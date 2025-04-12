@@ -12,11 +12,11 @@ client = MongoClient(dburi)
 db = client["ancheryfamily"]
 collection = db["familymembers"]
 
-SHEET_NAME = "Thankammayi"# Excel Sheet name
+SHEET_NAME = "Kuriappan MC 2"# Excel Sheet name
 
 def clean_phone_number(phone):
     """Clean phone number by removing invalid values and returning empty string."""
-    if pd.isna(phone) or str(phone).upper() in ['NAN', 'NIL', 'NONE', ''] or phone is None:
+    if pd.isna(phone) or str(phone).upper() in ['NAN', 'NIL', 'NONE', "NaT",'?', ''] or phone is None:
         return ""
     return str(phone).strip()
 
@@ -88,7 +88,7 @@ for index, row in df.iterrows():
         
         member_data = {
             'name': (row[name_col]).strip(),
-            'dob': pd.to_datetime(row.get(dob_col, None), dayfirst=True),
+            'dob': None if not clean_field(row.get(dob_col, None)) else pd.to_datetime(row.get(dob_col, None), dayfirst=True, errors='coerce'),
             'phone': phone,
             'occupation': occupation,
             'address': current_address,
@@ -104,6 +104,12 @@ for index, row in df.iterrows():
             'name': member_data['name'],
             'dob': member_data['dob']
         })
+        
+        if not existing_member:
+            existing_member = collection.find_one({
+                'name': member_data['name'],
+                'dob': None
+            })
         
         if existing_member:
             member_id = existing_member['_id']
