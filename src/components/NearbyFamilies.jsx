@@ -30,9 +30,14 @@ const Dialog = ({ isOpen, onClose, onConfirm }) => {
 
 const NearbyFamilies = () => {
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Changed to true for initial loading
   const [error, setError] = useState("");
   const [showLocationDialog, setShowLocationDialog] = useState(false);
+
+  // Auto-fetch on component mount
+  useEffect(() => {
+    getCurrentLocation();
+  }, []);
 
   const handleLocationError = (error) => {
     console.error("Geolocation error:", error);
@@ -108,7 +113,7 @@ const NearbyFamilies = () => {
 
   return (
     <div className="nearby-families-container">
-      <h1>Find Families Nearby</h1>
+      <h1>Families Nearby</h1>
 
       {error && !showLocationDialog && (
         <div className="error-message">
@@ -121,12 +126,6 @@ const NearbyFamilies = () => {
 
       {loading && (
         <div className="loading-message">Finding nearby families...</div>
-      )}
-
-      {!loading && members.length === 0 && !error && (
-        <button onClick={getCurrentLocation} className="location-button">
-          Find Families Near Me
-        </button>
       )}
 
       <Dialog

@@ -2,14 +2,14 @@
   margin-left: 12px;
   padding: 4px 12px;
   border: none;
-  background-color: #3b82f6;
+  background-color: #2563eb;
   color: white;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .retry-button:hover {
-  background-color: #2563eb;
+  background-color: #1d4ed8;
 }
 
 .error-message {
@@ -72,7 +72,7 @@
 }
 
 .dialog-button.confirm {
-  background-color: #3b82f6;
+  background-color: #2563eb;
   color: white;
 }
 
@@ -99,6 +99,7 @@
 }
 
 .nearby-families-container h1 {
+  text-align: center;
   font-size: 1.8rem;
   font-weight: 600;
   font-family: "Poppins", sans-serif;
@@ -156,7 +157,7 @@
 }
 
 .member-distance {
-  font-size: rem;
+  font-size: 1rem;
   color: #666;
   margin-bottom: 8px;
 }
@@ -172,10 +173,10 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  display: flex; /* Added for centering */
-  align-items: center; /* Added for vertical centering */
-  justify-content: center; /* Added for horizontal centering */
-  min-height: 36px; /* Added to ensure consistent height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
   white-space: nowrap;
   flex-shrink: 0;
   max-width: fit-content;
@@ -240,6 +241,20 @@
   .member-info {
     text-align: center;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .member-name {
+    text-align: center;
+    width: auto;
+    margin: 0 auto;
+  }
+
+  .member-distance {
+    text-align: center;
+    margin: 0 auto;
   }
 
   .location-button {

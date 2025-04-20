@@ -125,11 +125,11 @@ a {
 .container {
   display: flex;
   margin: 20px auto;
-  padding: 20px;
-  background-color: white;
-  border-radius: 4px;
+  padding: 15px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-width: 1200px;
+  max-width: 800px;
   width: 95%;
   align-items: center;
   flex-direction: column;
@@ -210,9 +210,9 @@ a {
 /* Small screens - 1 card per row */
 @media (max-width: 768px) {
   .container {
-    width: 100%;
-    padding: 10px;
+    width: 90%;
     margin: 10px auto;
+    padding: 10px;
   }
 
   .card,
