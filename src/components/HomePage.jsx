@@ -88,14 +88,18 @@ function HomePage() {
         <div className="search-container" ref={dropdownRef}>
           <form onSubmit={handleSearch} className="search-form">
             <div className="search-input-wrapper">
-              <Search className="search-icon" size={20} />
+              <div className="search-icon-container">
+                <Search className="search-icon" size={20} />
+              </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search members..."
                 className="search-input"
-                onFocus={() => setIsDropdownVisible(true)}
+                onFocus={() =>
+                  searchResults.length > 0 && setIsDropdownVisible(true)
+                }
               />
               <button
                 type="submit"
