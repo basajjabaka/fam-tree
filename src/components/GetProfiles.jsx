@@ -54,7 +54,7 @@ function GetProfiles() {
 
   return (
     <div className="container">
-      <h1>{member.name}'s Family</h1>
+      <h1 className="family-heading">{member.name}'s Family</h1>
       {member.location && (
         <a
           href={member.location}
@@ -62,7 +62,7 @@ function GetProfiles() {
           rel="noopener noreferrer"
           className="btn btn-location"
         >
-          <i class="bi bi-geo-alt-fill" /> View Location
+          <i className="bi bi-geo-alt-fill" /> View Location
         </a>
       )}
       {member.image && (

@@ -1026,13 +1026,6 @@ button {
   }
 }
 
-/* Fix icon styling to remove brown background */
-svg,
-.icon {
-  color: inherit;
-  background: none !important; /* Force remove any background */
-}
-
 /* Keyboard Shortcuts */
 .keyboard-shortcuts-help {
   position: fixed;

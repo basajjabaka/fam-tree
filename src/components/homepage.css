@@ -123,10 +123,6 @@
     border-right: none;
   }
 
-  .container {
-    padding: 0;
-  }
-
   .history-header {
     padding: 1rem;
   }
@@ -362,33 +358,21 @@ body {
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #3b82f6;
-  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.25);
-}
-
-.search-icon-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 100%;
-  flex-shrink: 0;
-}
-
-.search-icon {
-  color: #6b7280;
-  width: 20px;
-  height: 20px;
+  border-color: #05472b;
+  box-shadow: 0 1px 4px rgba(5, 71, 43, 0.25);
 }
 
 .search-input {
   flex: 1;
   border: none;
-  padding: 0 12px 0 0;
+  padding: 0 12px; /* Standard padding without icon */
   font-size: 16px;
   background: transparent;
   outline: none;
   height: 100%;
+  width: calc(100% - 80px); /* Account for button width */
+  position: absolute;
+  left: 0;
 }
 
 .search-input::placeholder {
@@ -396,7 +380,7 @@ body {
 }
 
 .search-button {
-  background-color: #3b82f6;
+  background-color: #05472b;
   color: white;
   border: none;
   border-radius: 0;
@@ -413,18 +397,20 @@ body {
   white-space: nowrap;
   margin: 0;
   flex-shrink: 0;
+  position: absolute;
+  right: 0;
 }
 
 .search-button:hover {
-  background-color: #2563eb;
+  background-color: #043d24;
 }
 
 .search-button:active {
-  background-color: #1d4ed8;
+  background-color: #032b1a;
 }
 
 .search-button:disabled {
-  background-color: #93c5fd;
+  background-color: #6c9d86;
   cursor: not-allowed;
 }
 
@@ -486,17 +472,10 @@ body {
     height: 42px;
   }
 
-  .search-icon-container {
-    width: 36px;
-  }
-
-  .search-icon {
-    width: 18px;
-    height: 18px;
-  }
-
   .search-input {
     font-size: 15px;
+    padding: 0 12px; /* Standard padding without icon */
+    width: calc(100% - 70px); /* Adjusted for smaller button */
   }
 
   .search-button {
@@ -513,16 +492,8 @@ body {
   }
 
   .search-input {
-    padding: 0 6px 0 34px; /* Increase left padding on small mobile */
-  }
-
-  .search-icon-container {
-    width: 32px;
-  }
-
-  .search-icon {
-    width: 16px;
-    height: 16px;
+    padding: 0 10px; /* Standard padding without icon */
+    width: calc(100% - 60px); /* Adjusted for smallest button */
   }
 }
 
