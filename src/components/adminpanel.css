@@ -357,6 +357,15 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  border: 2px dashed transparent;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  transition: all 0.3s ease;
+}
+
+.image-upload-container.drag-active {
+  border-color: var(--primary);
+  background-color: var(--primary-lighter);
 }
 
 .file-input-container {
@@ -421,6 +430,8 @@ textarea {
   justify-content: center;
   margin: 0 auto;
   overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
 .image-preview img {
@@ -432,19 +443,26 @@ textarea {
 
 .clear-image {
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: 0;
+  right: 0;
   background-color: var(--danger);
   color: white;
   border: none;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+  transition: transform 0.2s ease;
+}
+
+.clear-image:hover {
+  transform: scale(1.1);
+  background-color: #dc2626; /* Darker shade of red */
 }
 
 /* ===== Buttons ===== */

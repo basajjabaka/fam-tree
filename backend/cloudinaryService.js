@@ -13,8 +13,8 @@ const uploadOpts = {
   invalidate: true,
   resource_type: "auto",
   upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
-  use_filename: true, // Preserve original filename
-  unique_filename: true, // Add unique identifier to prevent conflicts
+  use_filename: true,
+  unique_filename: true,
 };
 
 const uploadImage = (imageBuffer, originalFilename) => {
@@ -38,7 +38,7 @@ const uploadImage = (imageBuffer, originalFilename) => {
       },
       (error, result) => {
         if (result && result.public_id) {
-          console.log(`Uploaded as: ${result.public_id}`);
+          console.log(`Uploaded/Updated as: ${result.public_id}`);
           return resolve(result.public_id);
         }
         if (error) {

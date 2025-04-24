@@ -21,6 +21,49 @@ import {
 import "react-datepicker/dist/react-datepicker.css";
 import "./adminpanel.css";
 
+// Custom hook for viewport scaling
+function useViewportScale() {
+  // Function to update the viewport meta tag's content
+  const setViewportScale = (scale) => {
+    let viewport = document.querySelector('meta[name="viewport"]');
+    const content = `width=device-width, initial-scale=${scale}, maximum-scale=2, user-scalable=yes`;
+
+    if (!viewport) {
+      // Create viewport meta if it doesn't exist
+      viewport = document.createElement("meta");
+      viewport.name = "viewport";
+      document.head.appendChild(viewport);
+    }
+
+    // Update the content attribute
+    viewport.setAttribute("content", content);
+  };
+
+  // Function to save the original viewport settings
+  const saveOriginalViewport = () => {
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      return viewport.getAttribute("content");
+    }
+    return "width=device-width, initial-scale=1.0";
+  };
+
+  // Set scale based on screen width
+  const updateScale = () => {
+    const screenWidth = window.innerWidth;
+
+    if (screenWidth <= 480) {
+      setViewportScale(0.7); // Strong zoom out for very small screens
+    } else if (screenWidth <= 768) {
+      setViewportScale(0.8); // Moderate zoom out for medium-small screens
+    } else {
+      setViewportScale(1.0); // Normal scale for larger screens
+    }
+  };
+
+  return { updateScale, saveOriginalViewport, setViewportScale };
+}
+
 function AdminPanel() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [members, setMembers] = useState([]);
@@ -49,7 +92,11 @@ function AdminPanel() {
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [sortOption, setSortOption] = useState("nameAsc");
+  const [dragActive, setDragActive] = useState(false);
+  const [originalViewport, setOriginalViewport] = useState(null);
   const fileInputRef = useRef(null);
+  const { updateScale, saveOriginalViewport, setViewportScale } =
+    useViewportScale();
 
   useEffect(() => {
     const isAdmin = localStorage.getItem("isAdmin");
@@ -150,6 +197,28 @@ function AdminPanel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLoggedIn, activeTab, showShortcuts]);
 
+  useEffect(() => {
+    const savedViewport = saveOriginalViewport();
+    setOriginalViewport(savedViewport);
+
+    // Apply appropriate scaling based on screen size
+    updateScale();
+
+    // Listen for resize events to adjust scaling
+    window.addEventListener("resize", updateScale);
+
+    // Restore original viewport when component unmounts
+    return () => {
+      if (originalViewport) {
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+          viewport.setAttribute("content", originalViewport);
+        }
+      }
+      window.removeEventListener("resize", updateScale);
+    };
+  }, [originalViewport]);
+
   const fetchMembers = async () => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     try {
@@ -209,6 +278,35 @@ function AdminPanel() {
 
   const handleDateChange = (date) => {
     setForm({ ...form, dob: moment(date).format("DD-MM-YYYY") });
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith("image/")) {
+        setForm({ ...form, image: file });
+
+        const fileReader = new FileReader();
+        fileReader.onload = (e) => {
+          setImagePreview(e.target.result);
+        };
+        fileReader.readAsDataURL(file);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -489,6 +587,11 @@ function AdminPanel() {
   };
 
   if (!isLoggedIn) {
+    // Restore normal viewport for login screen
+    if (originalViewport) {
+      setViewportScale(1.0);
+    }
+
     return (
       <div className="admin-login-container">
         <div className="login-card">
@@ -553,6 +656,9 @@ function AdminPanel() {
       </div>
     );
   }
+
+  // Apply scaled viewport for admin panel content
+  updateScale();
 
   return (
     <div className="admin-wrapper">
@@ -731,7 +837,15 @@ function AdminPanel() {
 
             <div className="form-section-title full-width">Profile Image</div>
 
-            <div className="form-group full-width image-upload-container">
+            <div
+              className={`form-group full-width image-upload-container ${
+                dragActive ? "drag-active" : ""
+              }`}
+              onDragEnter={handleDrag}
+              onDragOver={handleDrag}
+              onDragLeave={handleDrag}
+              onDrop={handleDrop}
+            >
               {currentImage && !imagePreview && (
                 <div className="current-image-container">
                   <p className="current-image-label">Current Image:</p>
@@ -774,7 +888,8 @@ function AdminPanel() {
               </div>
 
               <p className="image-help-text">
-                JPG or PNG, max 5MB. 16:9 ratio images work best.
+                JPG or PNG, max 5MB. 16:9 ratio images work best. You can also
+                drag and drop an image here.
               </p>
             </div>
 
