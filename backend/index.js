@@ -195,20 +195,40 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       children,
       location,
       about,
+      deleteOldImage,
+      deleteImage: shouldDeleteImage, // Rename to avoid conflict with function
     } = req.body;
     const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
     if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
 
-    let imageFileName = req.body.image;
-    if (req.file) {
-      imageFileName = await uploadImage(req.file.buffer, req.file.originalname);
-    }
-
     const existingMember = await FamilyMember.findById(req.params.id);
+    if (!existingMember)
+      return res.status(404).json({ message: "Member not found" });
 
-    // Delete the old image file if a new image is uploaded
-    if (req.file && existingMember.image) {
-      await deleteImage(existingMember.image);
+    let imageFileName = existingMember.image;
+
+    // Handle completely removing the image without replacement
+    if (shouldDeleteImage === "true" && existingMember.image) {
+      try {
+        await deleteImage(existingMember.image); // This uses the imported function
+        console.log(`Deleted image: ${existingMember.image}`);
+        imageFileName = null; // Set to null to remove from database
+      } catch (deleteError) {
+        console.error(`Error deleting image: ${deleteError.message}`);
+      }
+    }
+    // Handle replacing an existing image with a new one
+    else if (req.file) {
+      imageFileName = await uploadImage(req.file.buffer, req.file.originalname);
+
+      if (deleteOldImage === "true" && existingMember.image) {
+        try {
+          await deleteImage(existingMember.image);
+          console.log(`Deleted old image: ${existingMember.image}`);
+        } catch (deleteError) {
+          console.error(`Error deleting old image: ${deleteError.message}`);
+        }
+      }
     }
 
     let coordinates = [];
@@ -223,7 +243,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
         name,
         dob: parsedDob,
         phone,
-        image: imageFileName,
+        image: imageFileName, // This will be null if image was deleted
         occupation,
         address,
         spouse,
@@ -243,8 +263,6 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
           children: updatedMember.children,
           spouse: updatedMember._id,
           image: imageFileName,
-          location: location,
-          about: about,
         },
       });
     }
@@ -266,7 +284,6 @@ app.delete("/api/members/:id", async (req, res) => {
     const deletedMember = await FamilyMember.findByIdAndDelete(req.params.id);
     if (!deletedMember)
       return res.status(404).json({ message: "Member not found" });
-
     if (deletedMember.spouse)
       await FamilyMember.findByIdAndUpdate(deletedMember.spouse, {
         $pull: { children: deletedMember._id },
@@ -276,7 +293,6 @@ app.delete("/api/members/:id", async (req, res) => {
       { children: deletedMember._id },
       { $pull: { children: deletedMember._id } }
     );
-
     // Delete image from Cloudinary if image file name exists
     if (deletedMember.image) {
       try {
@@ -285,9 +301,9 @@ app.delete("/api/members/:id", async (req, res) => {
         console.error("Error deleting image from Cloudinary:", cloudinaryErr);
       }
     }
-
     res.json(deletedMember);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -311,6 +327,7 @@ app.get("/api/search", async (req, res) => {
     }));
     res.json(membersWithUrls);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
@@ -322,7 +339,6 @@ app.get("/api/nearby", async (req, res) => {
       .status(400)
       .json({ message: "Latitude and longitude are required" });
   }
-
   try {
     const members = await FamilyMember.find();
     const nearbyMembers = await Promise.all(
@@ -333,18 +349,14 @@ app.get("/api/nearby", async (req, res) => {
           member.location.coordinates.length !== 2
         )
           return null; // Skip members without valid coordinates
-
         const [lon, lat] = member.location.coordinates;
         const distanceResponse = await calculateRoadDistance(
           parseFloat(lat),
           parseFloat(lng),
-          lat,
           lon
         );
-
         // Extract numeric distance from the response
         const distance = parseFloat(distanceResponse);
-
         // Return the member only if the distance is valid
         if (distance != null && !isNaN(distance)) {
           return { ...member.toObject(), distance };
@@ -352,7 +364,6 @@ app.get("/api/nearby", async (req, res) => {
         return null; // Skip members with invalid distance
       })
     );
-
     const validMembers = nearbyMembers
       .filter((member) => member !== null) // Filter out nulls (invalid members)
       .sort((a, b) => a.distance - b.distance) // Sort by distance (closest first)
@@ -362,7 +373,6 @@ app.get("/api/nearby", async (req, res) => {
         }
         return member;
       });
-
     res.json(validMembers);
   } catch (err) {
     console.error(err);
@@ -375,7 +385,6 @@ app.get("/api/members/birthdays/today", async (req, res) => {
     const today = momentTimezone().tz("Asia/Kolkata");
     const todayDay = today.date();
     const todayMonth = today.month() + 1; // Months are 0-indexed in JS
-
     const birthdays = await FamilyMember.aggregate([
       {
         $project: {
@@ -393,14 +402,12 @@ app.get("/api/members/birthdays/today", async (req, res) => {
         },
       },
     ]);
-
     // Add image URLs and format dates
     const formattedBirthdays = birthdays.map((member) => ({
       ...member,
       image: member.image ? constructImageUrl(member.image) : null,
       dob: moment(member.dob).format("DD-MM-YYYY"), // Format for frontend
     }));
-
     res.json(formattedBirthdays);
   } catch (error) {
     console.error("Birthday error:", error);
@@ -416,7 +423,6 @@ app.post("/api/tts", async (req, res) => {
       voice: { languageCode, ssmlGender: "NEUTRAL" },
       audioConfig: { audioEncoding: "MP3" },
     };
-
     const [response] = await client.synthesizeSpeech(request);
     // Set the response content type and send the audio content
     res.set("Content-Type", "audio/mpeg");
@@ -430,5 +436,4 @@ app.post("/api/tts", async (req, res) => {
 app.get("*", (req, res) =>
   res.sendFile(path.join(__dirname, "../dist/index.html"))
 );
-
 app.listen(5000, () => console.log("Server is running on port 5000"));

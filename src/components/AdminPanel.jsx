@@ -148,11 +148,20 @@ function AdminPanel() {
         break;
     }
 
-    setFilteredMembers(
-      sortedMembers.filter((member) =>
-        member.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    );
+      // Fix search functionality
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase().trim();
+      sortedMembers = sortedMembers.filter(
+        (member) =>
+          member.name.toLowerCase().includes(query) ||
+          (member.phone && member.phone.includes(query)) ||
+          (member.occupation &&
+            member.occupation.toLowerCase().includes(query)) ||
+          (member.address && member.address.toLowerCase().includes(query))
+      );
+    }
+
+    setFilteredMembers(sortedMembers);
   }, [sortOption, members, searchQuery]);
 
   useEffect(() => {
@@ -256,6 +265,32 @@ function AdminPanel() {
     localStorage.removeItem("adminExpiry");
   };
 
+  // Add missing function for clearing image selection
+  const clearImageSelection = () => {
+    setForm({ ...form, image: null });
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Fix the removeCurrentImage function
+  const removeCurrentImage = () => {
+    setForm({ ...form, image: "REMOVE" });
+    setCurrentImage(null);
+    setNotification({
+      message: "Image will be removed when you save the member",
+      type: "info",
+    });
+    setTimeout(() => setNotification({ message: "", type: "" }), 3000);
+  };
+
+  // Add missing function for auto-resizing textareas
+  const handleAutoResize = (e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = e.target.scrollHeight + "px";
+  };
+
   const handleChange = (e) => {
     const { name, value, files, options } = e.target;
     if (name === "image" && files.length > 0) {
@@ -328,14 +363,28 @@ function AdminPanel() {
     if (form.parent) {
       formData.append("parent", form.parent);
     }
-    formData.append("children", form.children.join(","));
+    // Fix for handling children array
+    if (form.children && form.children.length > 0) {
+      formData.append("children", form.children.join(","));
+    } else {
+      formData.append("children", "");
+    }
+
     if (form.image instanceof File) {
       formData.append("image", form.image);
+      // Add flag to delete old image if there was one
+      if (editingId && currentImage) {
+        formData.append("deleteOldImage", "true");
+      }
+    } else if (form.image === "REMOVE") {
+      // Fix: Properly handle image removal
+      formData.append("deleteImage", "true");
     }
 
     const url = editingId
       ? `${apiUrl}/api/members/${editingId}`
       : `${apiUrl}/api/members`;
+
     const method = editingId ? "PUT" : "POST";
 
     setNotification({ message: "Saving...", type: "info" });
@@ -360,7 +409,6 @@ function AdminPanel() {
 
       resetForm();
       fetchMembers();
-
       setTimeout(() => setNotification({ message: "", type: "" }), 3000);
     } catch (fetchError) {
       console.error("Submit form failed:", fetchError);
@@ -394,7 +442,6 @@ function AdminPanel() {
   const handleEdit = (member) => {
     setActiveTab("form");
     window.scrollTo({ top: 0, behavior: "smooth" });
-
     setForm({
       name: member.name || "",
       dob: member.dob ? moment(member.dob).format("DD-MM-YYYY") : "",
@@ -411,7 +458,6 @@ function AdminPanel() {
     setEditingId(member._id);
     setImagePreview(null);
     setCurrentImage(member.image);
-
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -420,7 +466,6 @@ function AdminPanel() {
   const handleDelete = async (id) => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     const name = members.find((member) => member._id === id).name;
-
     if (!window.confirm(`Are you sure you want to delete ${name}?`)) {
       return;
     }
@@ -431,11 +476,9 @@ function AdminPanel() {
       const response = await fetch(`${apiUrl}/api/members/${id}`, {
         method: "DELETE",
       });
-
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
-
       setNotification({
         message: "Member deleted successfully!",
         type: "success",
@@ -445,7 +488,6 @@ function AdminPanel() {
       if (editingId === id) {
         resetForm();
       }
-
       setTimeout(() => setNotification({ message: "", type: "" }), 3000);
     } catch (error) {
       console.error("Delete member failed:", error);
@@ -453,43 +495,24 @@ function AdminPanel() {
     }
   };
 
-  const handleAutoResize = (e) => {
-    const textarea = e.target;
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  };
-
-  const clearImageSelection = () => {
-    setForm({ ...form, image: null });
-    setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const handleSelectMember = (id) => {
     const newSelection = selectedMembers.includes(id)
       ? selectedMembers.filter((memberId) => memberId !== id)
       : [...selectedMembers, id];
-
     setSelectedMembers(newSelection);
     setShowBulkActions(newSelection.length > 0);
   };
 
   const handleSelectAll = () => {
     const willSelectAll = selectedMembers.length !== filteredMembers.length;
-
-    const newSelection = willSelectAll
-      ? filteredMembers.map((member) => member._id)
-      : [];
-
-    setSelectedMembers(newSelection);
-    setShowBulkActions(newSelection.length > 0);
+    setSelectedMembers(
+      willSelectAll ? filteredMembers.map((member) => member._id) : []
+    );
+    setShowBulkActions(willSelectAll);
   };
 
   const handleBulkDelete = async () => {
     if (selectedMembers.length === 0) return;
-
     if (
       !window.confirm(
         `Are you sure you want to delete ${selectedMembers.length} members?`
@@ -497,26 +520,21 @@ function AdminPanel() {
     ) {
       return;
     }
-
     setNotification({ message: "Deleting members...", type: "info" });
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
     try {
       for (const id of selectedMembers) {
         await fetch(`${apiUrl}/api/members/${id}`, {
           method: "DELETE",
         });
       }
-
       setNotification({
         message: `Successfully deleted ${selectedMembers.length} members`,
         type: "success",
       });
-
       setSelectedMembers([]);
       setShowBulkActions(false);
       fetchMembers();
-
       setTimeout(() => setNotification({ message: "", type: "" }), 3000);
     } catch (error) {
       console.error("Bulk delete failed:", error);
@@ -524,6 +542,7 @@ function AdminPanel() {
         message: "Failed to delete some members",
         type: "error",
       });
+      setTimeout(() => setNotification({ message: "", type: "" }), 3000);
     }
   };
 
@@ -545,7 +564,6 @@ function AdminPanel() {
     const csvString = csvRows.join("\n");
     const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute(
@@ -554,12 +572,6 @@ function AdminPanel() {
     );
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-
-    setNotification({
-      message: `Exported ${members.length} members to CSV`,
-      type: "success",
-    });
     setTimeout(() => setNotification({ message: "", type: "" }), 3000);
   };
 
@@ -726,10 +738,8 @@ function AdminPanel() {
               </button>
             )}
           </div>
-
           <form onSubmit={handleSubmit} className="form-grid">
             <div className="form-section-title">Basic Information</div>
-
             <div className="form-group">
               <label htmlFor="name">
                 <User size={16} />
@@ -745,7 +755,6 @@ function AdminPanel() {
                 required
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="dob">
                 <Calendar size={16} />
@@ -762,7 +771,6 @@ function AdminPanel() {
                 className="date-picker"
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="phone">
                 <Phone size={16} />
@@ -777,7 +785,6 @@ function AdminPanel() {
                 placeholder="Enter phone number"
               />
             </div>
-
             <div className="form-group">
               <label htmlFor="occupation">
                 <Briefcase size={16} />
@@ -792,7 +799,6 @@ function AdminPanel() {
                 placeholder="Enter occupation"
               />
             </div>
-
             <div className="form-group full-width">
               <label htmlFor="address">Address</label>
               <textarea
@@ -809,7 +815,6 @@ function AdminPanel() {
             <div className="form-section-title full-width">
               Additional Information
             </div>
-
             <div className="form-group full-width">
               <label htmlFor="location">Google Maps Location</label>
               <input
@@ -821,7 +826,6 @@ function AdminPanel() {
                 placeholder="Paste Google Maps link"
               />
             </div>
-
             <div className="form-group full-width">
               <label htmlFor="about">About Family</label>
               <textarea
@@ -834,9 +838,7 @@ function AdminPanel() {
                 rows="3"
               />
             </div>
-
             <div className="form-section-title full-width">Profile Image</div>
-
             <div
               className={`form-group full-width image-upload-container ${
                 dragActive ? "drag-active" : ""
@@ -851,10 +853,17 @@ function AdminPanel() {
                   <p className="current-image-label">Current Image:</p>
                   <div className="image-preview">
                     <img src={currentImage} alt="Current profile" />
+                    <button
+                      type="button"
+                      className="clear-image"
+                      onClick={removeCurrentImage}
+                      title="Remove current image"
+                    >
+                      <X size={16} />
+                    </button>
                   </div>
                 </div>
               )}
-
               {imagePreview && (
                 <div className="image-preview-container">
                   <p className="image-preview-label">New Image:</p>
