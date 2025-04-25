@@ -263,6 +263,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
           children: updatedMember.children,
           spouse: updatedMember._id,
           image: imageFileName,
+          about: about,
         },
       });
     }
@@ -353,6 +354,7 @@ app.get("/api/nearby", async (req, res) => {
         const distanceResponse = await calculateRoadDistance(
           parseFloat(lat),
           parseFloat(lng),
+          lat,
           lon
         );
         // Extract numeric distance from the response
