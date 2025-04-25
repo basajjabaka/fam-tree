@@ -226,7 +226,7 @@ function AdminPanel() {
       }
       window.removeEventListener("resize", updateScale);
     };
-  }, [originalViewport]);
+  }, []); // Remove originalViewport from dependencies
 
   const fetchMembers = async () => {
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
