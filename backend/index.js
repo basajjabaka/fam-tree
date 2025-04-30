@@ -65,6 +65,10 @@ const FamilyMemberSchema = new mongoose.Schema({
 
 const FamilyMember = mongoose.model("FamilyMember", FamilyMemberSchema);
 
+app.get("/healthcheck", (req, res) => {
+  res.status(200).send("OK");
+});
+
 app.get("/api/members", async (req, res) => {
   try {
     const members = await FamilyMember.find().populate("spouse children");
