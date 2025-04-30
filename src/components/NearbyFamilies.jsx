@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./nearbyfamilies.css";
+import LoadingSpinner from "./LoadingSpinner";
 
 const Dialog = ({ isOpen, onClose, onConfirm }) => {
   if (!isOpen) return null;
@@ -30,7 +31,7 @@ const Dialog = ({ isOpen, onClose, onConfirm }) => {
 
 const NearbyFamilies = () => {
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true); // Changed to true for initial loading
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showLocationDialog, setShowLocationDialog] = useState(false);
 
@@ -124,9 +125,7 @@ const NearbyFamilies = () => {
         </div>
       )}
 
-      {loading && (
-        <div className="loading-message">Finding nearby families...</div>
-      )}
+      {loading && <LoadingSpinner message="Finding nearby families" />}
 
       <Dialog
         isOpen={showLocationDialog}

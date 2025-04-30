@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./profile.css";
 import Profile from "./Profile";
+import LoadingSpinner from "./LoadingSpinner";
 
 function UsersList({ ids }) {
   const [users, setUsers] = useState([]);
@@ -35,7 +36,7 @@ function UsersList({ ids }) {
   }, [ids]);
 
   if (loading) {
-    return <h1>Loading...</h1>;
+    return <LoadingSpinner />;
   }
 
   if (error) {

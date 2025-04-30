@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 async function calculateRoadDistance(lat1, lon1, lat2, lon2) {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Your Google Maps API key
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${lat1},${lon1}&destination=${lat2},${lon2}&key=${apiKey}`;
 
   try {
@@ -15,6 +15,7 @@ async function calculateRoadDistance(lat1, lon1, lat2, lon2) {
 
       return distanceInKm;
     } else {
+      console.log(lat2, lon2);
       throw new Error(`Error from Google Maps API: ${data.status}`);
     }
   } catch (error) {

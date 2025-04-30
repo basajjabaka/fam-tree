@@ -43,7 +43,7 @@ const upload = multer({ storage });
 
 const FamilyMemberSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  dob: { type: Date, required: true },
+  dob: { type: Date },
   phone: { type: String },
   image: { type: String }, // Store image file name from Cloudinary
   occupation: { type: String },
@@ -165,7 +165,6 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
         $addToSet: { children: { $each: newMember.children } },
         spouse: newMember._id,
         image: imageFileName,
-        location: location,
         about: about,
       });
     }

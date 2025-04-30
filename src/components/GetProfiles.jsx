@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Profile from "./Profile";
 import ErrorPage from "./ErrorPage";
+import LoadingSpinner from "./LoadingSpinner";
 import "./profile.css";
 
 function GetProfiles() {
@@ -12,31 +13,50 @@ function GetProfiles() {
   const [response, setResponse] = useState(null);
 
   useEffect(() => {
+    if (!id) return;
+
+    setLoading(true); // Show spinner initially
+
     const apiUrl = import.meta.env.VITE_API_BASE_URL;
     fetch(`${apiUrl}/api/members/${id}`)
-      .then((response) => {
-        setResponse(response);
-        if (!response.ok) {
-          return response.json().then((data) => {
+      .then((res) => {
+        setResponse(res);
+        if (!res.ok) {
+          return res.json().then((data) => {
             throw new Error(data.message || "Network response was not ok");
           });
         }
-        return response.json();
+        return res.json();
       })
       .then((data) => {
-        console.log("Fetched member data:", data);
-        setMember(data);
-        setLoading(false);
+        setMember(data); // Set the member data
       })
-      .catch((error) => {
-        console.error("Error fetching member data:", error);
-        setError(error.message);
-        setLoading(false);
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false); // Hide spinner on error
       });
   }, [id]);
 
+  useEffect(() => {
+    if (member) {
+      if (member.image) {
+        const img = new Image();
+        img.src = member.image;
+        img.onload = () => {
+          setLoading(false);
+        };
+        img.onerror = () => {
+          console.warn("Image failed to load");
+          setLoading(false);
+        };
+      } else {
+        setLoading(false);
+      }
+    }
+  }, [member]);
+
   if (loading) {
-    return <h1>Loading...</h1>;
+    return <LoadingSpinner message="Loading Family Details" />;
   }
 
   if (error) {
