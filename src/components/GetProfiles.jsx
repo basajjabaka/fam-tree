@@ -87,7 +87,15 @@ function GetProfiles() {
       )}
       {member.image && (
         <div className="family-photo">
-          <img src={member.image} alt={`${member.name}'s Family`} />
+          <img
+            src={
+              member.image +
+              (member.updatedAt
+                ? `?v=${new Date(member.updatedAt).getTime()}`
+                : `?v=${Date.now()}`)
+            }
+            alt={`${member.name}'s Family`}
+          />
         </div>
       )}
       {member.about && <p className="about">{member.about}</p>}
