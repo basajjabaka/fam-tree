@@ -71,7 +71,7 @@ function HomePage() {
 
   return (
     <div className="home-page">
-      <header className="header">
+      <header className="header-home">
         <div className="title-container">
           <h1 className="title">Malieakkal</h1>
           <h2 className="subtitle">Anchery Family</h2>

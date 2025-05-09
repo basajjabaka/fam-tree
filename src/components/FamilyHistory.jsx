@@ -5,7 +5,7 @@ function FamilyHistory() {
   // History content in both languages
   const historyContent = {
     en: `The Malieakkal Anchery Family boasts a rich legacy spanning generations. From humble beginnings to becoming a pillar of the community, their journey is marked by resilience, unity, and cherished traditions.`,
-    ml: `മലിയാക്കല്‍ അഞ്ഞേരി കുടുംബം പല തലമുറകളിലൂടെയും പടർന്നിരിക്കുന്ന സമൃദ്ധമായ പൈതൃകമാണ്. ചെറിയ തുടക്കങ്ങളില്‍ നിന്ന് സമൂഹത്തിന്റെ ഒരു അടിത്തറയാവുന്നതുവരെ, അവരുടെ യാത്ര സ്ഥിരത, ഐക്യം, ആഴത്തിലുള്ള പാരമ്പര്യങ്ങളാൽ അടയാളപ്പെടുത്തിയതാണ്.`,
+    ml: `മാളിയേക്കൽ അഞ്ഞേരി കുടുംബം പല തലമുറകളിലൂടെയും പടർന്നിരിക്കുന്ന സമൃദ്ധമായ പൈതൃകമാണ്. ചെറിയ തുടക്കങ്ങളില്‍ നിന്ന് സമൂഹത്തിന്റെ ഒരു അടിത്തറയാവുന്നതുവരെ, അവരുടെ യാത്ര സ്ഥിരത, ഐക്യം, ആഴത്തിലുള്ള പാരമ്പര്യങ്ങളാൽ അടയാളപ്പെടുത്തിയതാണ്.`,
   };
 
   const [language, setLanguage] = useState("en");
