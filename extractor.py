@@ -1,18 +1,20 @@
 import os
 import re
 import pandas as pd
+from rich.console import Console
 from dotenv import load_dotenv
 from pathlib import Path
 from pymongo import MongoClient
 
 load_dotenv(".env")
 dburi = os.getenv("MONGO_URI")
+console = Console()
 # MongoDB setup
 client = MongoClient(dburi)
 db = client["ancheryfamily"]
 collection = db["familymembers"]
 
-SHEET_NAME = "Kuriappan MC 2"# Excel Sheet name
+SHEET_NAME = "Pailoth"# Excel Sheet name
 
 def clean_phone_number(phone):
     """Clean phone number by removing invalid values and returning empty string."""
@@ -40,6 +42,7 @@ for col in df.columns:
 
 data = []
 member_dict = {}
+inserted=[]
 
 for index, row in df.iterrows():
     member_ids = []
@@ -100,12 +103,23 @@ for index, row in df.iterrows():
         print(f"Processing member: {member_data}")
 
         # Check if the member already exists in the database
-        existing_member = collection.find_one({
-            'name': member_data['name'],
-            'dob': member_data['dob']
-        })
-        
-        if not existing_member:
+        if member_data['dob'] is not None:
+            existing_member = collection.find_one({
+                'name': member_data['name'],
+                'dob': member_data['dob']
+            })
+        elif all(member_data[k] is None for k in ['dob', 'address', 'phone', 'occupation', 'image', 'spouse', 'children']):
+            existing_member = collection.find_one({
+                'name': member_data['name'],
+                'dob': None,
+                'address': None,
+                'phone': None,
+                'occupation': None,
+                'image': None,
+                'spouse': None,
+                'children': []
+            })
+        else:
             existing_member = collection.find_one({
                 'name': member_data['name'],
                 'dob': None
@@ -130,6 +144,7 @@ for index, row in df.iterrows():
         else:
             result = collection.insert_one(member_data)
             member_id = result.inserted_id
+            inserted.append(member_data['name'])
 
         member_ids.append(member_id)
         member_dict[(member_data['name'], member_data['dob'])] = member_id
@@ -153,5 +168,7 @@ for index, row in df.iterrows():
                     {"_id": member_ids[1]}, 
                     {"$addToSet": {"children": member_id}}  # Use addToSet instead of push to avoid duplicates
                 )
-
-print("Family tree data has been successfully inserted into MongoDB.")
+               
+for inserted_name in inserted:
+    console.print(f"[green]Inserted: {inserted_name}[/green]") 
+console.print("[green]Family tree data has been successfully inserted into MongoDB.[/green]")

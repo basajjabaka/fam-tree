@@ -75,7 +75,7 @@ function HomePage() {
         <div className="title-container">
           <h1 className="title">Malieakkal</h1>
           <h2 className="subtitle">Anchery Family</h2>
-          <Link to="/nearby" className="nearby-button">
+          <Link to="/nearby-families" className="nearby-button">
             <MapPin size={20} />
             <span>Find Nearby Families</span>
           </Link>
