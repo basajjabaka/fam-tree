@@ -26,3 +26,6 @@ dist-ssr
 # Debugger files
 duplicate.py
 compare.py
+
+.env
+TTSanchery.json
