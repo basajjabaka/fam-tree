@@ -24,8 +24,7 @@ dist-ssr
 *.sw?
 
 # Debugger files
-duplicate.py
-compare.py
+/*.py
 
 .env
 TTSanchery.json
