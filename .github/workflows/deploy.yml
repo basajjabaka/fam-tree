@@ -8,7 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout code
@@ -18,12 +17,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          cache: 'npm'
+          cache: "npm"
 
-      - name: Install dependencies and build frontend (on GitHub Actions runner)
+      - name: Install dependencies and build
         run: |
-          npm install --prefix backend --production
-          npm install
+          npm ci --prefix backend --production
+          npm ci --production
           npm run build
 
       - name: Configure SSH
@@ -33,24 +32,38 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and Restart Services on VPS
+      - name: Deploy and Restart Services
         run: |
-          VPS_USER="${{ secrets.EC2_USER }}"
-          VPS_HOST="${{ secrets.EC2_HOST }}"
-          APP_DIR="~/app"
+          rsync -avz --delete \
+            --exclude node_modules \
+            --exclude .git \
+            --exclude .env \
+            . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/
 
-          # This rsync command WILL FAIL if /home/ubuntu/app is not writable by the EC2_USER (ubuntu)
-          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . "${VPS_USER}@${VPS_HOST}:${APP_DIR}/"
-
-          ssh "${VPS_USER}@${VPS_HOST}" << 'EOF'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
             cd ~/app
 
-            echo "${{ secrets.ENV_VARS }}" > .env
+            # Create .env with proper newline handling
+            cat << ENV_FILE > .env
+            ${{ secrets.ENV_VARS }}
+            ENV_FILE
 
+            # Validate .env file
+            if [ ! -s .env ]; then
+              echo "❌ Error: .env file is empty or missing!"
+              exit 1
+            fi
+            chmod 600 .env
+
+            # PM2 setup
             pm2 stop mafam-backend || true
             pm2 delete mafam-backend || true
-            pm2 start backend/index.js --name mafam-backend --time
+            pm2 start backend/index.js --name mafam-backend --update-env --time
             pm2 save
 
+            # Nginx refresh
             sudo systemctl restart nginx
+
+            echo "✅ Deployment successful!"
           EOF
