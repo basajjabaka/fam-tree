@@ -13,7 +13,7 @@ const {
 const calculateRoadDistance = require("./location");
 const extractLatLngFromLink = require("./extractgmap");
 
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 
 const app = express();
 const textToSpeech = require("@google-cloud/text-to-speech");
