@@ -21,14 +21,9 @@ jobs:
 
       - name: Install and build
         run: |
-          # Install backend production deps
           npm ci --prefix backend --omit=dev
-
-          # Install frontend deps (including devDependencies needed for build)
           npm ci
           npm run build
-
-          # Fix security vulnerabilities if possible
           npm audit fix || true
 
       - name: Configure SSH
@@ -40,7 +35,9 @@ jobs:
 
       - name: Deploy and Restart Services
         run: |
-          rsync -avz --delete \
+          # Use rsync with proper permissions
+          rsync -avz --no-times --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r \
+            --delete \
             --exclude node_modules \
             --exclude .git \
             --exclude .env \
@@ -49,18 +46,22 @@ jobs:
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
             cd ~/app
-
+            
+            # Fix permissions
+            sudo chown -R $USER:$USER .
+            sudo chmod -R 755 .
+            find . -type f -exec sudo chmod 644 {} \;
+            
             # Create .env
             printf '%s\n' "${{ secrets.ENV_VARS }}" > .env
             chmod 600 .env
 
-            # Install production deps for backend on server
+            # Rebuild dependencies
             npm ci --prefix backend --omit=dev
 
-            # PM2 restart
+            # PM2 management
             pm2 restart mafam-backend --update-env || pm2 start backend/index.js --name mafam-backend --time
-            pm2 save
-
+            
             # Nginx refresh
             sudo systemctl restart nginx
           EOF
