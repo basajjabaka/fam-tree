@@ -41,10 +41,9 @@ jobs:
           APP_DIR="~/app"
 
           # Step 1: Ensure the app directory on the VPS is owned by the SSH user (ubuntu)
-          # This is critical for rsync to have write permissions.
           ssh "${VPS_USER}@${VPS_HOST}" "sudo chown -R ${VPS_USER}:${VPS_USER} ${APP_DIR}"
 
-          # Step 2: Use rsync to transfer files with --delete to synchronize
+          # Step 2: Use rsync to transfer files
           rsync -avz --no-times --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r \
             --delete \
             --exclude node_modules \
@@ -54,29 +53,35 @@ jobs:
 
           # Step 3: Execute commands on the VPS after files are transferred
           ssh "${VPS_USER}@${VPS_HOST}" << 'EOF'
-            set -e # Exit immediately if a command exits with a non-zero status
+            set -e
+
+            # --- CRITICAL FIX: Load NVM and Node.js environment ---
+            # This makes 'npm' command available in the PATH for non-interactive shells
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+            nvm use 22 # Ensure we are using Node.js 22.x
+            # ---------------------------------------------------
 
             cd ~/app
 
-            # --- CRITICAL FIX: Create/Update .env file BEFORE changing ownership to www-data ---
+            # Create/Update .env file BEFORE changing ownership to www-data
             printf '%s\n' "${{ secrets.ENV_VARS }}" > .env
-            chmod 600 .env # Secure permissions for .env
+            chmod 600 .env
 
             # Now, fix permissions for Nginx and runtime after .env is created
-            sudo chown -R www-data:www-data . # Change ownership to www-data for Nginx
-            sudo chmod -R 755 .                # Set directories to 755, files to 755 (all can execute)
-            find . -type f -exec sudo chmod 644 {} \; # Correct files back to 644 (only owner can execute)
-            
-            # Ensure /home/ubuntu/ is traversable by www-data
+            sudo chown -R www-data:www-data .
+            sudo chmod -R 755 .
+            find . -type f -exec sudo chmod 644 {} \;
             sudo chmod o+rx /home/ubuntu/
 
-            # Rebuild dependencies on the server (if needed)
+            # Rebuild dependencies on the server (now 'npm' will be found)
             npm ci --prefix backend --omit=dev
 
-            # PM2 management
-            pm2 restart mafam-backend --update-env || pm2 start backend/index.js --name mafam-backend --time
-            pm2 save # Save PM2 process list to restore on reboot
+            pm2 stop mafam-backend --update-env || true
+            pm2 delete mafam-backend || true
+            pm2 start backend/index.js --name mafam-backend --time
+            pm2 save
             
-            # Nginx refresh
             sudo systemctl restart nginx
           EOF
