@@ -20,10 +20,10 @@ jobs:
           node-version: "22.x"
           cache: "npm"
 
-      - name: Install and build
+      - name: Install dependencies and build frontend (on GitHub Actions runner)
         run: |
-          npm ci --prefix backend --omit=dev
-          npm ci
+          npm install --prefix backend --omit=dev
+          npm install
           npm run build
           npm audit fix || true
 
@@ -34,7 +34,7 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and Restart Services
+      - name: Deploy and Restart Services on VPS
         run: |
           VPS_USER="${{ secrets.EC2_USER }}"
           VPS_HOST="${{ secrets.EC2_HOST }}"
@@ -45,7 +45,6 @@ jobs:
           ssh "${VPS_USER}@${VPS_HOST}" "sudo chown -R ${VPS_USER}:${VPS_USER} ${APP_DIR}"
 
           # Step 2: Use rsync to transfer files with --delete to synchronize
-          # The --chmod flags are useful for new files, but the chown above is paramount.
           rsync -avz --no-times --chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r \
             --delete \
             --exclude node_modules \
@@ -59,7 +58,11 @@ jobs:
 
             cd ~/app
 
-            # Fix permissions for Nginx and runtime after rsync has completed
+            # --- CRITICAL FIX: Create/Update .env file BEFORE changing ownership to www-data ---
+            printf '%s\n' "${{ secrets.ENV_VARS }}" > .env
+            chmod 600 .env # Secure permissions for .env
+
+            # Now, fix permissions for Nginx and runtime after .env is created
             sudo chown -R www-data:www-data . # Change ownership to www-data for Nginx
             sudo chmod -R 755 .                # Set directories to 755, files to 755 (all can execute)
             find . -type f -exec sudo chmod 644 {} \; # Correct files back to 644 (only owner can execute)
@@ -67,12 +70,7 @@ jobs:
             # Ensure /home/ubuntu/ is traversable by www-data
             sudo chmod o+rx /home/ubuntu/
 
-            # Create/Update .env file for the backend
-            printf '%s\n' "${{ secrets.ENV_VARS }}" > .env
-            chmod 600 .env # Secure permissions for .env
-
-            # Rebuild dependencies on the server (good practice, but might be redundant if rsync copies node_modules, which it doesn't)
-            # This is specifically for backend production dependencies.
+            # Rebuild dependencies on the server (if needed)
             npm ci --prefix backend --omit=dev
 
             # PM2 management
