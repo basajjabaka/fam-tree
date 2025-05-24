@@ -20,8 +20,8 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
-          source: "backend/"
-          target: "/home/ubuntu/app/backend-temp"
+          source: "."
+          target: "/home/ubuntu/app-temp"
 
       - name: SSH Deploy Commands
         uses: appleboy/ssh-action@v1.0.3
@@ -31,8 +31,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
           script: |
-            rm -rf /home/ubuntu/app/backend
-            mv /home/ubuntu/app/backend-temp /home/ubuntu/app/backend
+            rm -rf /home/ubuntu/app
+            mv /home/ubuntu/app-temp /home/ubuntu/app
             cd /home/ubuntu/app/backend
 
             echo "${{ secrets.ENV_VARS }}" > .env
