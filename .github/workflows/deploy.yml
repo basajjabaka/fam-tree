@@ -33,6 +33,9 @@ jobs:
           script: |
             rm -rf /home/ubuntu/app
             mv /home/ubuntu/app-temp /home/ubuntu/app
+            cd /home/ubuntu/app || exit 1
+            npm install
+
             cd /home/ubuntu/app/backend || exit 1
 
             echo "${{ secrets.ENV_VARS }}" > .env
