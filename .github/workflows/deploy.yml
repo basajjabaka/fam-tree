@@ -17,13 +17,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          cache: "npm"
+          cache: 'npm'
 
-      - name: Install backend dependencies and build frontend (on runner)
+      - name: Install dependencies and build frontend (on runner)
         run: |
-          npm install --prefix backend --production # Install production deps for backend
-          npm install --production # Install production deps for frontend (assuming root)
-          npm run build # Build the frontend (assuming package.json at root)
+          npm install --prefix backend --production
+          npm install
+          npm run build
 
       - name: Configure SSH
         run: |
@@ -34,25 +34,21 @@ jobs:
 
       - name: Deploy and Restart Services on VPS
         run: |
-          # Copy files to VPS (excluding node_modules, git, and existing .env)
-          # We're assuming your app lives in '~/app' on your VPS
-          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/
+          VPS_USER="${{ secrets.EC2_USER }}"
+          VPS_HOST="${{ secrets.EC2_HOST }}"
+          APP_DIR="~/app"
 
-          # Execute commands on the VPS
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/app # Navigate to your application directory
+          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . "${VPS_USER}@${VPS_HOST}:${APP_DIR}/"
 
-            # Create/Update .env file on the server from GitHub Secret
-            # Assumes secrets.ENV_VARS has KEY=VALUE pairs separated by NEWLINES
+          ssh "${VPS_USER}@${VPS_HOST}" << 'EOF'
+            cd ~/app
+
             echo "${{ secrets.ENV_VARS }}" > .env
 
-            # Restart backend using PM2
-            # 'mafam-backend' is the assumed name for your PM2 process
             pm2 stop mafam-backend || true
             pm2 delete mafam-backend || true
             pm2 start backend/index.js --name mafam-backend --time
             pm2 save
 
-            # Restart Nginx to serve new frontend files
             sudo systemctl restart nginx
           EOF
