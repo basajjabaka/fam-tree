@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies and build frontend (on GitHub Actions runner)
         run: |
@@ -39,37 +39,18 @@ jobs:
           VPS_HOST="${{ secrets.EC2_HOST }}"
           APP_DIR="~/app"
 
+          # This rsync command WILL FAIL if /home/ubuntu/app is not writable by the EC2_USER (ubuntu)
           rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . "${VPS_USER}@${VPS_HOST}:${APP_DIR}/"
 
           ssh "${VPS_USER}@${VPS_HOST}" << 'EOF'
             cd ~/app
 
             echo "${{ secrets.ENV_VARS }}" > .env
-            echo "--- .env file created/updated on VPS ---"
-
-            sudo chown -R ubuntu:ubuntu .
-
-            npm install --prefix backend --production
-            npm install --prefix . --production
-
-            sudo chown -R www-data:www-data .
-
-            sudo find . -type d -exec chmod 755 {} \;
-            sudo find . -type f -exec chmod 644 {} \;
-
-            sudo chmod o+rx /home/ubuntu/
-            echo "--- Permissions set for Nginx ---"
 
             pm2 stop mafam-backend || true
             pm2 delete mafam-backend || true
             pm2 start backend/index.js --name mafam-backend --time
             pm2 save
-            echo "--- Backend (mafam-backend) restarted via PM2 ---"
 
             sudo systemctl restart nginx
-            echo "--- Nginx restarted ---"
-
-            echo "Deployment and services restart complete on VPS!"
           EOF
-        env:
-          NODE_ENV: production
