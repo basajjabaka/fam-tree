@@ -33,7 +33,7 @@ jobs:
           script: |
             rm -rf /home/ubuntu/app
             mv /home/ubuntu/app-temp /home/ubuntu/app
-            cd /home/ubuntu/app/backend
+            cd /home/ubuntu/app/backend || exit 1
 
             echo "${{ secrets.ENV_VARS }}" > .env
 
@@ -43,6 +43,9 @@ jobs:
             npm install -g pm2
 
             npm install
+
+            pwd
+            ls -l index.js
 
             pm2 delete mafam-backend || true
             pm2 start index.js --name mafam-backend
