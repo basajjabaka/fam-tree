@@ -65,6 +65,8 @@ Create a `.env` file in the root directory:
 # API Configuration
 VITE_API_BASE_URL=
 VITE_USER_IDS=
+VITE_FAMILY_HISTORY_EN=""
+VITE_FAMILY_HISTORY_ML=""
 
 # MongoDB Configuration
 DB_NAME=treenest
@@ -86,6 +88,10 @@ GOOGLE_APPLICATION_CREDENTIALS=
 - **VITE_API_BASE_URL**: The URL where your backend server is running. Use the default for local development.
 
 - **VITE_USER_IDS**: MongoDB \_id values of initial family members. These IDs correspond to family member documents in your database that will be displayed when the application first loads.
+
+- **VITE_FAMILY_HISTORY_EN**: Family History in english
+
+- **VITE_FAMILY_HISTORY_ML**: Family History in malayalam
 
 - **DB_NAME**: The name of your MongoDB database. Default is "treenest".
 
