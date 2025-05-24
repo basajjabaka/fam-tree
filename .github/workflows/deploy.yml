@@ -3,12 +3,11 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main # Or your main branch name
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production # Optional: Link to a GitHub environment for better tracking
 
     steps:
       - name: Checkout code
@@ -17,15 +16,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "lts/*" # Use the latest LTS version
+          node-version: "22.x"
+          cache: "npm"
 
-      - name: Install backend dependencies
-        run: npm install
-        working-directory: ./backend # Adjust if your backend is not in a 'backend' folder
-
-      - name: Build React frontend
-        run: npm install && npm run build
-        working-directory: ./ # Or the root of your frontend, e.g., ./src
+      - name: Install backend dependencies and build frontend (on runner)
+        run: |
+          npm install --prefix backend --production # Install production deps for backend
+          npm install --production # Install production deps for frontend (assuming root)
+          npm run build # Build the frontend (assuming package.json at root)
 
       - name: Configure SSH
         run: |
@@ -34,40 +32,27 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and Restart Services
+      - name: Deploy and Restart Services on VPS
         run: |
-          # Prepare env vars for server
-          # Replace commas with spaces if your server script expects space-separated variables
-          # Or create a .env file directly on the server
-          ENV_VARS_ARRAY=$(echo "${{ secrets.ENV_VARS }}" | tr ',' '\n')
+          # Copy files to VPS (excluding node_modules, git, and existing .env)
+          # We're assuming your app lives in '~/app' on your VPS
+          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/
 
-          # Copy files to VPS
-          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/your-app-name/
-
-          # Connect to VPS and perform actions
+          # Execute commands on the VPS
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/your-app-name
+            cd ~/app # Navigate to your application directory
 
-            # Reinstall server node modules if needed (npm install --production is better for production)
-            npm install --prefix backend --production # Install only production dependencies for backend
-            npm install --prefix . --production # Install only production dependencies for root (if frontend is here)
+            # Create/Update .env file on the server from GitHub Secret
+            # Assumes secrets.ENV_VARS has KEY=VALUE pairs separated by NEWLINES
+            echo "${{ secrets.ENV_VARS }}" > .env
 
-            # Create/Update .env file on the server
-            # This approach assumes ENV_VARS secret contains KEY=VALUE pairs separated by commas
-            echo "${{ secrets.ENV_VARS }}" | tr ',' '\n' > .env # Creates a .env file from the secret
-            # Or if ENV_VARS is a JSON string of objects:
-            # echo "${{ secrets.ENV_VARS }}" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > .env
+            # Restart backend using PM2
+            # 'mafam-backend' is the assumed name for your PM2 process
+            pm2 stop mafam-backend || true
+            pm2 delete mafam-backend || true
+            pm2 start backend/index.js --name mafam-backend --time
+            pm2 save
 
-
-            # Start/Restart backend using PM2
-            pm2 stop backend-app || true # Stop if running
-            pm2 delete backend-app || true # Delete if exists
-            pm2 start backend/index.js --name backend-app # Assuming index.js is your main backend file
-            pm2 save # Save PM2 process list to restore on reboot
-
-            # Ensure Nginx serves the built frontend
-            # We'll configure Nginx properly in the next step
-            # For now, ensure the build folder exists and is in the right place
+            # Restart Nginx to serve new frontend files
+            sudo systemctl restart nginx
           EOF
-        env:
-          NODE_ENV: production
