@@ -34,7 +34,7 @@ jobs:
             rm -rf /home/ubuntu/app
             mv /home/ubuntu/app-temp /home/ubuntu/app
 
-            echo "${{ secrets.ENV_VARS }}" | sed 's/\\n/\n/g' > /home/ubuntu/app/.env
+            echo "${{ secrets.ENV_VARS }}" | tr '\\n' '\n' > /home/ubuntu/app/.env
 
             source ~/.nvm/nvm.sh
             nvm use 22
