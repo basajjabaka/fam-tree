@@ -19,11 +19,17 @@ jobs:
           node-version: "22.x"
           cache: "npm"
 
-      - name: Install dependencies and build
+      - name: Install and build
         run: |
-          npm ci --prefix backend --production
-          npm ci --production
+          # Install backend production deps
+          npm ci --prefix backend --omit=dev
+
+          # Install frontend deps (including devDependencies needed for build)
+          npm ci
           npm run build
+
+          # Fix security vulnerabilities if possible
+          npm audit fix || true
 
       - name: Configure SSH
         run: |
@@ -44,26 +50,17 @@ jobs:
             set -e
             cd ~/app
 
-            # Create .env with proper newline handling
-            cat << ENV_FILE > .env
-            ${{ secrets.ENV_VARS }}
-            ENV_FILE
-
-            # Validate .env file
-            if [ ! -s .env ]; then
-              echo "❌ Error: .env file is empty or missing!"
-              exit 1
-            fi
+            # Create .env
+            printf '%s\n' "${{ secrets.ENV_VARS }}" > .env
             chmod 600 .env
 
-            # PM2 setup
-            pm2 stop mafam-backend || true
-            pm2 delete mafam-backend || true
-            pm2 start backend/index.js --name mafam-backend --update-env --time
+            # Install production deps for backend on server
+            npm ci --prefix backend --omit=dev
+
+            # PM2 restart
+            pm2 restart mafam-backend --update-env || pm2 start backend/index.js --name mafam-backend --time
             pm2 save
 
             # Nginx refresh
             sudo systemctl restart nginx
-
-            echo "✅ Deployment successful!"
           EOF
