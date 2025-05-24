@@ -1,49 +1,73 @@
-name: Deploy Backend
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - main
+      - main # Or your main branch name
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production # Optional: Link to a GitHub environment for better tracking
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Copy codebase to EC2 (including backend)
-        uses: appleboy/scp-action@v0.1.3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          source: "."
-          target: "/home/ubuntu/app-temp"
+          node-version: "lts/*" # Use the latest LTS version
 
-      - name: SSH Deploy Commands
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          script: |
-            rm -rf /home/ubuntu/app
-            mv /home/ubuntu/app-temp /home/ubuntu/app
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./backend # Adjust if your backend is not in a 'backend' folder
 
-            echo "${{ secrets.ENV_VARS }}" | tr '\\n' '\n' > /home/ubuntu/app/.env
+      - name: Build React frontend
+        run: npm install && npm run build
+        working-directory: ./ # Or the root of your frontend, e.g., ./src
 
-            source ~/.nvm/nvm.sh
-            nvm use 22
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-            npm install -g pm2
+      - name: Deploy and Restart Services
+        run: |
+          # Prepare env vars for server
+          # Replace commas with spaces if your server script expects space-separated variables
+          # Or create a .env file directly on the server
+          ENV_VARS_ARRAY=$(echo "${{ secrets.ENV_VARS }}" | tr ',' '\n')
 
-            cd /home/ubuntu/app/backend || exit 1
-            npm install
+          # Copy files to VPS
+          rsync -avz --exclude 'node_modules' --exclude '.git' --exclude '.env' . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/your-app-name/
 
-            pm2 delete mafam-backend || true
-            pm2 start index.js --name mafam-backend
-            pm2 save
+          # Connect to VPS and perform actions
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/your-app-name
+
+            # Reinstall server node modules if needed (npm install --production is better for production)
+            npm install --prefix backend --production # Install only production dependencies for backend
+            npm install --prefix . --production # Install only production dependencies for root (if frontend is here)
+
+            # Create/Update .env file on the server
+            # This approach assumes ENV_VARS secret contains KEY=VALUE pairs separated by commas
+            echo "${{ secrets.ENV_VARS }}" | tr ',' '\n' > .env # Creates a .env file from the secret
+            # Or if ENV_VARS is a JSON string of objects:
+            # echo "${{ secrets.ENV_VARS }}" | jq -r 'to_entries[] | "\(.key)=\(.value)"' > .env
+
+
+            # Start/Restart backend using PM2
+            pm2 stop backend-app || true # Stop if running
+            pm2 delete backend-app || true # Delete if exists
+            pm2 start backend/index.js --name backend-app # Assuming index.js is your main backend file
+            pm2 save # Save PM2 process list to restore on reboot
+
+            # Ensure Nginx serves the built frontend
+            # We'll configure Nginx properly in the next step
+            # For now, ensure the build folder exists and is in the right place
+          EOF
+        env:
+          NODE_ENV: production
