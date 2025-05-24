@@ -1,26 +1,48 @@
-name: Deploy to Server
+name: Deploy Backend
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: SSH & Deploy
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Copy code to EC2
+        uses: appleboy/scp-action@v0.1.3
         with:
-          host: ${{ secrets.HOST }}
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          source: "."
+          target: "/home/ubuntu/app/backend-temp"
+
+      - name: SSH Deploy Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
           script: |
-            cd /home/ubuntu/app
-            git pull origin main
-            cd backend
+            rm -rf /home/ubuntu/app/backend
+            mv /home/ubuntu/app/backend-temp /home/ubuntu/app/backend
+            cd /home/ubuntu/app/backend
+
+            echo "${{ secrets.ENV_VARS }}" > .env
+
+            source ~/.nvm/nvm.sh
+            nvm install 18
+            nvm use 18
+
             npm install
-            pm2 restart mafam-backend
+
+            pm2 delete mafam-backend || true
+            pm2 start index.js --name mafam-backend
+            pm2 save
