@@ -181,7 +181,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url("../assets/family.jpg");
+  background-image: url("../assets/family.png");
   background-size: cover;
   background-position: center;
   width: 100%;
