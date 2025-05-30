@@ -1,5 +1,5 @@
+const loadEnv = require("./loadEnv");
 const cloudinary = require("cloudinary").v2;
-require("dotenv").config({ path: "../.env" });
 
 // Configure Cloudinary
 cloudinary.config({

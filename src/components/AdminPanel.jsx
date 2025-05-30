@@ -265,7 +265,6 @@ function AdminPanel() {
     localStorage.removeItem("adminExpiry");
   };
 
-  // Add missing function for clearing image selection
   const clearImageSelection = () => {
     setForm({ ...form, image: null });
     setImagePreview(null);
@@ -274,7 +273,6 @@ function AdminPanel() {
     }
   };
 
-  // Fix the removeCurrentImage function
   const removeCurrentImage = () => {
     setForm({ ...form, image: "REMOVE" });
     setCurrentImage(null);
@@ -285,7 +283,6 @@ function AdminPanel() {
     setTimeout(() => setNotification({ message: "", type: "" }), 3000);
   };
 
-  // Add missing function for auto-resizing textareas
   const handleAutoResize = (e) => {
     e.target.style.height = "auto";
     e.target.style.height = e.target.scrollHeight + "px";
@@ -356,29 +353,23 @@ function AdminPanel() {
     formData.append("address", form.address);
     formData.append("location", form.location);
     formData.append("about", form.about);
+    formData.append("children", form.children && form.children.length > 0 ? form.children.join(",") : "");
 
-    if (form.spouse) {
-      formData.append("spouse", form.spouse);
+    if (form.spouse && typeof form.spouse === 'string' && form.spouse.trim() !== "") {
+      formData.append("spouse", form.spouse.trim());
     }
-    if (form.parent) {
-      formData.append("parent", form.parent);
-    }
-    // Fix for handling children array
-    if (form.children && form.children.length > 0) {
-      formData.append("children", form.children.join(","));
-    } else {
-      formData.append("children", "");
-    }
-
-    if (form.image instanceof File) {
+    // --- REVISED IMAGE LOGIC ---
+    if (form.image instanceof File) { // Case 1: New image is being uploaded
       formData.append("image", form.image);
-      // Add flag to delete old image if there was one
-      if (editingId && currentImage) {
-        formData.append("deleteOldImage", "true");
+      if (editingId) {
+          formData.append("deleteOldImage", "true");
       }
-    } else if (form.image === "REMOVE") {
-      // Fix: Properly handle image removal
-      formData.append("deleteImage", "true");
+    } else if (form.image === "REMOVE" && editingId) { // Case 2: Existing image is marked for removal
+                                                     // No need to check `currentImage` state here,
+                                                     // as it's already nulled for UI by removeCurrentImage.
+                                                     // If form.image is "REMOVE" and we are editing,
+                                                     // it means the user *intends* to remove what was there.
+      formData.append("deleteOldImage", "true");
     }
 
     const url = editingId

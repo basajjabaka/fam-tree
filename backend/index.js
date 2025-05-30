@@ -10,10 +10,9 @@ const {
   deleteImage,
   constructImageUrl,
 } = require("./cloudinaryService");
+const loadEnv = require("./loadEnv");
 const calculateRoadDistance = require("./location");
 const extractLatLngFromLink = require("./extractgmap");
-
-require("dotenv").config({ path: "../.env" });
 
 const app = express();
 const textToSpeech = require("@google-cloud/text-to-speech");
@@ -198,88 +197,114 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       children,
       location,
       about,
-      deleteOldImage,
-      deleteImage: shouldDeleteImage, // Rename to avoid conflict with function
+      deleteOldImage, // Expecting 'true' or 'false' (as strings from form-data) or undefined
     } = req.body;
-    const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
-    if (!parsedDob || isNaN(parsedDob)) throw new Error("Invalid date format");
 
-    const existingMember = await FamilyMember.findById(req.params.id);
-    if (!existingMember)
+    const memberToUpdate = await FamilyMember.findById(req.params.id);
+    if (!memberToUpdate) {
       return res.status(404).json({ message: "Member not found" });
-
-    let imageFileName = existingMember.image;
-
-    // Handle completely removing the image without replacement
-    if (shouldDeleteImage === "true" && existingMember.image) {
-      try {
-        await deleteImage(existingMember.image); // This uses the imported function
-        console.log(`Deleted image: ${existingMember.image}`);
-        imageFileName = null; // Set to null to remove from database
-      } catch (deleteError) {
-        console.error(`Error deleting image: ${deleteError.message}`);
-      }
     }
-    // Handle replacing an existing image with a new one
-    else if (req.file) {
-      imageFileName = await uploadImage(req.file.buffer, req.file.originalname);
 
-      if (deleteOldImage === "true" && existingMember.image) {
+    const oldImageName = memberToUpdate.image;
+
+    if (name !== undefined) memberToUpdate.name = name;
+    if (dob !== undefined) {
+      const parsedDob = moment(dob, "DD/MM/YYYY").toDate();
+      if (!parsedDob || isNaN(parsedDob.getTime())) {
+        return res.status(400).json({ message: "Invalid date format for DOB. Please use DD/MM/YYYY." });
+      }
+      memberToUpdate.dob = parsedDob;
+    }
+    if (phone !== undefined) memberToUpdate.phone = phone;
+    if (occupation !== undefined) memberToUpdate.occupation = occupation;
+    if (address !== undefined) memberToUpdate.address = address;
+    if (about !== undefined) memberToUpdate.about = about;
+
+    // Handle image update logic
+    if (req.file) {
+      try {
+        const uploadedImagePublicId = await uploadImage(req.file.buffer, req.file.originalname);
+        memberToUpdate.image = uploadedImagePublicId;
+
+        if (oldImageName && oldImageName !== uploadedImagePublicId && deleteOldImage !== 'false') {
+          await deleteImage(oldImageName);
+        }
+      } catch (uploadError) {
+        console.error("Error during image upload:", uploadError);
+        return res.status(500).json({ message: `Image upload failed: ${uploadError.message}` });
+      }
+    } else { 
+      if (deleteOldImage === 'true' && oldImageName) {
         try {
-          await deleteImage(existingMember.image);
-          console.log(`Deleted old image: ${existingMember.image}`);
+          await deleteImage(oldImageName);
+          memberToUpdate.image = null;
         } catch (deleteError) {
-          console.error(`Error deleting old image: ${deleteError.message}`);
+          console.error(`Failed to delete image ${oldImageName}:`, deleteError);
+          return res.status(500).json({ message: `Failed to delete image: ${deleteError.message}` });
         }
       }
     }
 
-    let coordinates = [];
-    if (location) {
-      const extractedLocation = await extractLatLngFromLink(location);
-      coordinates = [extractedLocation.lng, extractedLocation.lat];
+    // Update location
+    if (location === '') {
+        memberToUpdate.location = { coordinates: [] };
+    } else if (location) {
+      try {
+        const extractedLocation = await extractLatLngFromLink(location);
+        if (extractedLocation && typeof extractedLocation.lat === 'number' && typeof extractedLocation.lng === 'number') {
+            memberToUpdate.location = { coordinates: [extractedLocation.lng, extractedLocation.lat] };
+        } else {
+            console.warn("Could not extract valid coordinates from location link for update:", location);
+        }
+      } catch (error) {
+        console.error("Error extracting location for update:", error);
+      }
     }
 
-    const updatedMember = await FamilyMember.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        dob: parsedDob,
-        phone,
-        image: imageFileName, // This will be null if image was deleted
-        occupation,
-        address,
-        spouse,
-        children: children ? children.split(",") : [],
-        location: { coordinates },
-        about,
-      },
-      { new: true }
-    );
+    let savedMember = await memberToUpdate.save();
 
-    if (!updatedMember)
-      return res.status(404).json({ message: "Member not found" });
-
-    if (spouse) {
-      await FamilyMember.findByIdAndUpdate(spouse, {
-        $set: {
-          children: updatedMember.children,
-          spouse: updatedMember._id,
-          image: imageFileName,
-          about: about,
-        },
-      });
-    }
-    if (parent) {
-      await FamilyMember.findByIdAndUpdate(parent, {
-        $addToSet: { children: updatedMember._id },
-      });
+    const currentSpouseId = savedMember.spouse ? savedMember.spouse.toString() : null;
+    const newSpouseId = (spouse && mongoose.Types.ObjectId.isValid(spouse.trim())) ? spouse.trim() : null;
+    
+    if (currentSpouseId !== newSpouseId) {
+      if (currentSpouseId) {
+        await FamilyMember.findByIdAndUpdate(currentSpouseId, { spouse: null });
+      }
+      if (newSpouseId) {
+        await FamilyMember.findByIdAndUpdate(newSpouseId, { spouse: savedMember._id, image: savedMember.image });
+        savedMember.spouse = newSpouseId;
+      } else {
+        savedMember.spouse = null;
+      }
+      savedMember = await savedMember.save();
     }
 
-    res.json(updatedMember);
+    if (children !== undefined) {
+      let newChildrenIds = [];
+      if (typeof children === 'string' && children.trim() !== '') {
+        newChildrenIds = children.split(',').map(id => id.trim()).filter(id => mongoose.Types.ObjectId.isValid(id));
+      } else if (Array.isArray(children)) {
+        newChildrenIds = children.map(id => String(id).trim()).filter(id => mongoose.Types.ObjectId.isValid(id));
+      } else if (children === '' || (Array.isArray(children) && children.length === 0)) {
+        newChildrenIds = [];
+      }
+      savedMember.children = newChildrenIds;
+      savedMember = await savedMember.save();
+    }
+
+    if (parent && mongoose.Types.ObjectId.isValid(parent.trim())) {
+      await FamilyMember.findByIdAndUpdate(parent.trim(), { $addToSet: { children: savedMember._id } });
+    }
+
+    const finalUpdatedMember = await FamilyMember.findById(savedMember._id).populate('spouse children');
+    res.json(finalUpdatedMember);
+
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: err.message });
+    console.error("Error updating member:", err);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ message: err.message, errors: err.errors });
+    }
+    res.status(500).json({ message: err.message });
   }
 });
 

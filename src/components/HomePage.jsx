@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Search, MapPin } from "lucide-react";
 import "./homepage.css";
 import UsersList from "./UsersList";

@@ -4,7 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
-} from "react-router-dom";
+} from "react-router";
 import GetProfiles from "./components/GetProfiles";
 import HomePage from "./components/HomePage";
 import AdminPanel from "./components/AdminPanel";

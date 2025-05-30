@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import Profile from "./Profile";
 import ErrorPage from "./ErrorPage";
 import LoadingSpinner from "./LoadingSpinner";
