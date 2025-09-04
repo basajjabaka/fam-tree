@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { Search, MapPin } from "lucide-react";
 import "./homepage.css";
 import UsersList from "./UsersList";
@@ -73,8 +73,8 @@ function HomePage() {
     <div className="home-page">
       <header className="header-home">
         <div className="title-container">
-          <h1 className="title">Malieakkal</h1>
-          <h2 className="subtitle">Anchery Family</h2>
+          <h2 className="subtitle">Olunyiriri Lwaffe</h2>
+          <h1 className="title">Kafunwa</h1>
           <Link to="/nearby-families" className="nearby-button">
             <MapPin size={20} />
             <span>Find Nearby Families</span>
@@ -82,7 +82,7 @@ function HomePage() {
         </div>
       </header>
       <div className={`header-box ${isSticky ? "visible" : ""}`}>
-        <h1 className="header-box-title">Malieakkal Anchery Family</h1>
+        <h1 className="header-box-title">Olunyiriri Lwa Kafunwa</h1>
       </div>
       <section className="content">
         <div className="search-container" ref={dropdownRef}>

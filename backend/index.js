@@ -5,6 +5,8 @@ const path = require("path");
 const moment = require("moment");
 const multer = require("multer");
 const momentTimezone = require("moment-timezone");
+const fs = require("fs");
+const { exec } = require("child_process");
 const {
   uploadImage,
   deleteImage,
@@ -28,19 +30,40 @@ const GOOGLE_APPLICATION_CREDENTIALS =
 
 async function connectDB() {
   try {
-    await mongoose.connect(uri, { dbName: process.env.DB_NAME });
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to DB");
   } catch (err) {
     console.error(err);
   }
 }
 
+// Connect to the database
 connectDB();
+
+// Update the .env file with user IDs from the database
+const updateEnvScript = path.join(__dirname, 'update_env_ids.js');
+if (fs.existsSync(updateEnvScript)) {
+  console.log('Updating .env file with user IDs from the database...');
+  exec(`node ${updateEnvScript}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error executing update_env_ids.js: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`update_env_ids.js stderr: ${stderr}`);
+      return;
+    }
+    console.log(`update_env_ids.js output: ${stdout}`);
+  });
+}
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-const FamilyMemberSchema = new mongoose.Schema({
+// Get collection name from environment variable or use default
+const collectionName = process.env.COLLECTION_NAME || "Budimbe";
+
+const MemberSchema = new mongoose.Schema({
   name: { type: String, required: true },
   dob: { type: Date },
   phone: { type: String },
@@ -49,10 +72,10 @@ const FamilyMemberSchema = new mongoose.Schema({
   address: { type: String },
   spouse: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "FamilyMember",
+    ref: collectionName,
     default: null,
   },
-  children: [{ type: mongoose.Schema.Types.ObjectId, ref: "FamilyMember" }],
+  children: [{ type: mongoose.Schema.Types.ObjectId, ref: collectionName }],
   location: {
     coordinates: {
       type: [Number], // [longitude, latitude]
@@ -62,7 +85,7 @@ const FamilyMemberSchema = new mongoose.Schema({
   about: { type: String },
 });
 
-const FamilyMember = mongoose.model("FamilyMember", FamilyMemberSchema);
+const Member = mongoose.model(collectionName, MemberSchema);
 
 app.get("/healthcheck", (req, res) => {
   res.status(200).send("OK");
@@ -70,7 +93,7 @@ app.get("/healthcheck", (req, res) => {
 
 app.get("/api/members", async (req, res) => {
   try {
-    const members = await FamilyMember.find().populate("spouse children");
+    const members = await Member.find().populate("spouse children");
 
     const membersWithDetails = members.map((member) => {
       const location =
@@ -93,24 +116,31 @@ app.get("/api/members", async (req, res) => {
 
 app.get("/api/members/:id", async (req, res) => {
   try {
-    let member = await FamilyMember.findById(req.params.id).populate(
+    let member = await Member.findById(req.params.id).populate(
       "spouse children"
     );
     if (!member) return res.status(404).json({ message: "Member not found" });
     if (!member.spouse) {
-      const parent = await FamilyMember.findOne({
+      const parent = await Member.findOne({
         children: req.params.id,
       }).populate("spouse children");
-      member = parent;
+      if (parent) {
+        member = parent;
+      }
     }
 
-    const location =
-      member.location?.coordinates?.length === 2
-        ? `https://www.google.com/maps?q=${member.location.coordinates[1]},${member.location.coordinates[0]}`
-        : null;
+    // Safely handle location data
+    let location = null;
+    if (member && member.location && member.location.coordinates && 
+        Array.isArray(member.location.coordinates) && member.location.coordinates.length === 2) {
+      location = `https://www.google.com/maps?q=${member.location.coordinates[1]},${member.location.coordinates[0]}`;
+    }
 
+    // Convert to object safely
+    const memberObj = member.toObject ? member.toObject() : {};
+    
     const memberWithDetails = {
-      ...member.toObject(),
+      ...memberObj,
       image: member.image ? constructImageUrl(member.image) : null,
       location: location, // Add the location link
     };
@@ -149,7 +179,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       coordinates = [extractedLocation.lng, extractedLocation.lat];
     }
 
-    const newMember = new FamilyMember({
+    const newMember = new Budimbe({
       name,
       dob: parsedDob,
       phone,
@@ -164,7 +194,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
     await newMember.save();
 
     if (spouse) {
-      await FamilyMember.findByIdAndUpdate(spouse, {
+      await Member.findByIdAndUpdate(spouse, {
         $addToSet: { children: { $each: newMember.children } },
         spouse: newMember._id,
         image: imageFileName,
@@ -172,7 +202,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       });
     }
     if (parent) {
-      await FamilyMember.findByIdAndUpdate(parent, {
+      await Member.findByIdAndUpdate(parent, {
         $addToSet: { children: newMember._id },
       });
     }
@@ -200,7 +230,7 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
       deleteOldImage, // Expecting 'true' or 'false' (as strings from form-data) or undefined
     } = req.body;
 
-    const memberToUpdate = await FamilyMember.findById(req.params.id);
+    const memberToUpdate = await Member.findById(req.params.id);
     if (!memberToUpdate) {
       return res.status(404).json({ message: "Member not found" });
     }
@@ -268,10 +298,10 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
     
     if (currentSpouseId !== newSpouseId) {
       if (currentSpouseId) {
-        await FamilyMember.findByIdAndUpdate(currentSpouseId, { spouse: null });
+        await Member.findByIdAndUpdate(currentSpouseId, { spouse: null });
       }
       if (newSpouseId) {
-        await FamilyMember.findByIdAndUpdate(newSpouseId, { spouse: savedMember._id, image: savedMember.image });
+        await Member.findByIdAndUpdate(newSpouseId, { spouse: savedMember._id, image: savedMember.image });
         savedMember.spouse = newSpouseId;
       } else {
         savedMember.spouse = null;
@@ -293,10 +323,10 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
     }
 
     if (parent && mongoose.Types.ObjectId.isValid(parent.trim())) {
-      await FamilyMember.findByIdAndUpdate(parent.trim(), { $addToSet: { children: savedMember._id } });
+      await Member.findByIdAndUpdate(parent.trim(), { $addToSet: { children: savedMember._id } });
     }
 
-    const finalUpdatedMember = await FamilyMember.findById(savedMember._id).populate('spouse children');
+    const finalUpdatedMember = await Member.findById(savedMember._id).populate('spouse children');
     res.json(finalUpdatedMember);
 
   } catch (err) {
@@ -310,15 +340,15 @@ app.put("/api/members/:id", upload.single("image"), async (req, res) => {
 
 app.delete("/api/members/:id", async (req, res) => {
   try {
-    const deletedMember = await FamilyMember.findByIdAndDelete(req.params.id);
+    const deletedMember = await Member.findByIdAndDelete(req.params.id);
     if (!deletedMember)
       return res.status(404).json({ message: "Member not found" });
     if (deletedMember.spouse)
-      await FamilyMember.findByIdAndUpdate(deletedMember.spouse, {
+      await Member.findByIdAndUpdate(deletedMember.spouse, {
         $pull: { children: deletedMember._id },
         $unset: { spouse: "" },
       });
-    await FamilyMember.updateMany(
+    await Member.updateMany(
       { children: deletedMember._id },
       { $pull: { children: deletedMember._id } }
     );
@@ -341,7 +371,7 @@ app.get("/api/search", async (req, res) => {
   try {
     const { query } = req.query;
     const searchRegex = new RegExp(query, "i");
-    const members = await FamilyMember.find({
+    const members = await Member.find({
       $or: [
         { name: searchRegex },
         { phone: searchRegex },
@@ -369,7 +399,7 @@ app.get("/api/nearby", async (req, res) => {
       .json({ message: "Latitude and longitude are required" });
   }
   try {
-    const members = await FamilyMember.find();
+    const members = await Member.find();
     const nearbyMembers = await Promise.all(
       members.map(async (member) => {
         if (
@@ -415,7 +445,7 @@ app.get("/api/members/birthdays/today", async (req, res) => {
     const today = momentTimezone().tz("Asia/Kolkata");
     const todayDay = today.date();
     const todayMonth = today.month() + 1; // Months are 0-indexed in JS
-    const birthdays = await FamilyMember.aggregate([
+    const birthdays = await Member.aggregate([
       {
         $project: {
           name: 1,

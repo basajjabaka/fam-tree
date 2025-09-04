@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import "./header.css";
 
 const Header = () => {
@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <header className="header" ref={menuRef}>
       <div className="header-content">
-        <h1 className="header-title">Malieakkal Anchery Family</h1>
+        <h1 className="header-title">Olunyiriri Lwa Kafunwa</h1>
 
         {/* Navigation is now INSIDE header-content */}
         <nav className={`header-nav ${isMenuOpen ? "open" : ""}`}>

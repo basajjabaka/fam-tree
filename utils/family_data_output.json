@@ -1,0 +1,96 @@
+{
+  "hierarchy": [
+    {
+      "name": "John",
+      "level": 0,
+      "spouse": "Jane",
+      "children": [
+        {
+          "name": "goldy",
+          "level": 1
+        },
+        {
+          "name": "silvy",
+          "level": 1
+        }
+      ]
+    },
+    {
+      "name": "Jane",
+      "level": 0,
+      "spouse": "John",
+      "children": [
+        {
+          "name": "goldy",
+          "level": 1
+        },
+        {
+          "name": "silvy",
+          "level": 1
+        }
+      ]
+    }
+  ],
+  "detailedInfo": [
+    {
+      "name": "John",
+      "dob": "23/01/1900",
+      "phone": "123456789",
+      "occupation": "Software engineer",
+      "address": "John, 123 Street, ABC square",
+      "spouse": "Jane",
+      "children": [
+        "goldy",
+        "silvy"
+      ]
+    },
+    {
+      "name": "Jane",
+      "dob": "12/01/1900",
+      "phone": "123456789",
+      "occupation": "Business",
+      "address": "Jane, 456 Street, DFG circle",
+      "spouse": "John",
+      "children": [
+        "goldy",
+        "silvy"
+      ]
+    },
+    {
+      "name": "goldy",
+      "dob": "01/01/2001",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "name": "silvy",
+      "dob": "01/01/2002",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "name": "Goldy",
+      "dob": "01/01/2001",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "name": "Silvy",
+      "dob": "01/01/2002",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "rawData": [
+    {
+      "_id": "68a2ea0a133fed213b1bbff3",
+      "name": "John",
+      "dob": "1900-01-23T00:00:00.000Z",
+      "phone": "123456789",
+      "occupation": "Software engineer",
+      "address": "John, 123 Street, ABC square",
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3457",
+      "spouse": "68a2ea0a133fed213b1bbff4",
+      "children": [
+        "68a2ea0a133fed213b1bbff5",
+        "68a2ea0a133fed213b1bbff6"
+      ]
+    },
+    {
+      "_id": "68a2ea0a133fed213b1bbff4",
+      "name": "Jane",
+      "dob": "1900-01-12T00:00:00.000Z",
+      "phone": "123456789",
+      "occupation": "Business",
+      "address": "Jane, 456 Street, DFG circle",
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3457",
+      "spouse": "68a2ea0a133fed213b1bbff3",
+      "children": [
+        "68a2ea0a133fed213b1bbff5",
+        "68a2ea0a133fed213b1bbff6"
+      ]
+    },
+    {
+      "_id": "68a2ea0a133fed213b1bbff5",
+      "name": "goldy",
+      "dob": "2001-01-01T00:00:00.000Z",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3457",
+      "spouse": null,
+      "children": []
+    },
+    {
+      "_id": "68a2ea0a133fed213b1bbff6",
+      "name": "silvy",
+      "dob": "2002-01-01T00:00:00.000Z",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3457",
+      "spouse": null,
+      "children": []
+    },
+    {
+      "_id": "68a2ea0b133fed213b1bbff7",
+      "name": "Goldy",
+      "dob": "2001-01-01T00:00:00.000Z",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3475",
+      "spouse": null,
+      "children": []
+    },
+    {
+      "_id": "68a2ea0b133fed213b1bbff8",
+      "name": "Silvy",
+      "dob": "2002-01-01T00:00:00.000Z",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "image": "http://res.cloudinary.com/basajja/image/upload/IMG_3494",
+      "spouse": null,
+      "children": []
+    }
+  ],
+  "extractedData": [
+    {
+      "id": "68a2ea0a133fed213b1bbff3",
+      "name": "John",
+      "dob": "1900-01-23T00:00:00.000Z",
+      "phone": "123456789",
+      "occupation": "Software engineer",
+      "address": "John, 123 Street, ABC square",
+      "spouse": "68a2ea0a133fed213b1bbff4",
+      "children": [
+        "68a2ea0a133fed213b1bbff5",
+        "68a2ea0a133fed213b1bbff6"
+      ]
+    },
+    {
+      "id": "68a2ea0a133fed213b1bbff4",
+      "name": "Jane",
+      "dob": "1900-01-12T00:00:00.000Z",
+      "phone": "123456789",
+      "occupation": "Business",
+      "address": "Jane, 456 Street, DFG circle",
+      "spouse": "68a2ea0a133fed213b1bbff3",
+      "children": [
+        "68a2ea0a133fed213b1bbff5",
+        "68a2ea0a133fed213b1bbff6"
+      ]
+    },
+    {
+      "id": "68a2ea0a133fed213b1bbff5",
+      "name": "goldy",
+      "dob": "2001-01-01T00:00:00.000Z",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "id": "68a2ea0a133fed213b1bbff6",
+      "name": "silvy",
+      "dob": "2002-01-01T00:00:00.000Z",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "id": "68a2ea0b133fed213b1bbff7",
+      "name": "Goldy",
+      "dob": "2001-01-01T00:00:00.000Z",
+      "phone": "256325632",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    },
+    {
+      "id": "68a2ea0b133fed213b1bbff8",
+      "name": "Silvy",
+      "dob": "2002-01-01T00:00:00.000Z",
+      "phone": "145214521",
+      "occupation": "Engineer",
+      "address": null,
+      "spouse": null,
+      "children": []
+    }
+  ]
+}

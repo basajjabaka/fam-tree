@@ -5,33 +5,39 @@ from rich.console import Console
 from dotenv import load_dotenv
 from pathlib import Path
 from pymongo import MongoClient
+import sys
 
-load_dotenv(".env")
-dburi = os.getenv("MONGODB_URI")
+# Initialize console for rich output
 console = Console()
-# MongoDB setup
+
+# Load environment variables from parent directory
+env_path = os.path.join(os.path.dirname(__file__), "../.env")
+load_dotenv(env_path)
+dburi = os.getenv("MONGODB_URI")
+
+# Check if MongoDB URI is available
 if not dburi:
-    console.print("[bold red]Error: MONGODB_URI environment variable not found or empty[/bold red]")
-    exit(1)
+    console.print("[bold red]Error: MONGODB_URI environment variable is not set![/bold red]")
+    sys.exit(1)
+
+console.print(f"[yellow]Connecting to MongoDB using URI: {dburi[:20]}...[/yellow]")
 
 try:
-    client = MongoClient(dburi)
-    # Test the connection
+    # MongoDB setup with proper connection string
+    client = MongoClient(dburi, serverSelectionTimeoutMS=5000)
+    
+    # Verify connection is working
     client.admin.command('ping')
-    console.print("[bold green]Successfully connected to MongoDB![/bold green]")
+    console.print("[green]MongoDB connection successful![/green]")
     
-    # Use 'test' database since 'basajja' doesn't exist yet
-    db_name = "basajja"  # Using 'test' database which exists by default
-    collection_name = "budimbe"  # More descriptive collection name
-    
-    console.print(f"[bold blue]Using database: {db_name}, collection: {collection_name}[/bold blue]")
-    
-    # Create database and collection if they don't exist
+    # Use the database and collection from .env
+    db_name = os.getenv("DB_NAME", "basajja")
     db = client[db_name]
-    collection = db[collection_name]
+    collection = db["budimbe"]
+    console.print(f"[blue]Using database: {db_name}, collection: budimbe[/blue]")
 except Exception as e:
-    console.print(f"[bold red]Error connecting to MongoDB: {e}[/bold red]")
-    exit(1)
+    console.print(f"[bold red]MongoDB Connection Error: {str(e)}[/bold red]")
+    sys.exit(1)
 
 SHEET_NAME = "Sheet1" # Excel Sheet name
 

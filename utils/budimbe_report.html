@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basajja Budimbe Family Data</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .section {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    .member-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      width: calc(50% - 20px);
+    }
+    .member-card h3 {
+      margin-top: 0;
+      color: #3498db;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    .member-info {
+      margin-bottom: 15px;
+    }
+    .member-info strong {
+      display: inline-block;
+      width: 120px;
+      color: #7f8c8d;
+    }
+    .family-tree {
+      margin-top: 20px;
+    }
+    .family-tree ul {
+      list-style-type: none;
+      padding-left: 20px;
+    }
+    .family-tree > ul {
+      padding-left: 0;
+    }
+    .family-tree li {
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .family-tree li::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -15px;
+      border-left: 1px solid #ccc;
+      height: 100%;
+    }
+    .family-tree li:last-child::before {
+      height: 15px;
+    }
+    .family-tree li::after {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: -15px;
+      border-top: 1px solid #ccc;
+      width: 15px;
+    }
+    .family-tree > ul > li::before,
+    .family-tree > ul > li::after {
+      display: none;
+    }
+    .member-image {
+      max-width: 150px;
+      max-height: 150px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .image-container {
+      float: right;
+      margin-left: 20px;
+    }
+    .clearfix::after {
+      content: "";
+      clear: both;
+      display: table;
+    }
+    @media (max-width: 768px) {
+      .member-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Basajja Budimbe Family Data</h1>
+  
+  <div class="section">
+    <h2>Family Overview</h2>
+    <p>Total family members: 6</p>
+    <p>Database: basajja</p>
+    <p>Collection: basajja.budimbe</p>
+  </div>
+
+  <h2>Family Members</h2>
+  <div class="container">
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3457" alt="John" class="member-image">
+        </div>
+        <h3>John</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0a133fed213b1bbff3</p>
+          <p><strong>Date of Birth:</strong> 23/01/1900</p>
+          <p><strong>Phone:</strong> 123456789</p>
+          <p><strong>Occupation:</strong> Software engineer</p>
+          <p><strong>Address:</strong> John, 123 Street, ABC square</p>
+          
+          
+          <p><strong>Spouse:</strong> Jane</p>
+          
+          
+          <p><strong>Children:</strong></p>
+          <ul>
+            <li>goldy</li><li>silvy</li>
+          </ul>
+        </div>
+      </div>
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3457" alt="Jane" class="member-image">
+        </div>
+        <h3>Jane</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0a133fed213b1bbff4</p>
+          <p><strong>Date of Birth:</strong> 12/01/1900</p>
+          <p><strong>Phone:</strong> 123456789</p>
+          <p><strong>Occupation:</strong> Business</p>
+          <p><strong>Address:</strong> Jane, 456 Street, DFG circle</p>
+          
+          
+          <p><strong>Spouse:</strong> John</p>
+          
+          
+          <p><strong>Children:</strong></p>
+          <ul>
+            <li>goldy</li><li>silvy</li>
+          </ul>
+        </div>
+      </div>
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3457" alt="goldy" class="member-image">
+        </div>
+        <h3>goldy</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0a133fed213b1bbff5</p>
+          <p><strong>Date of Birth:</strong> 01/01/2001</p>
+          <p><strong>Phone:</strong> 256325632</p>
+          <p><strong>Occupation:</strong> Engineer</p>
+          <p><strong>Address:</strong> N/A</p>
+          
+          
+          <p><strong>Spouse:</strong> N/A</p>
+          
+          
+          <p><strong>Children:</strong> None</p>
+        </div>
+      </div>
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3457" alt="silvy" class="member-image">
+        </div>
+        <h3>silvy</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0a133fed213b1bbff6</p>
+          <p><strong>Date of Birth:</strong> 01/01/2002</p>
+          <p><strong>Phone:</strong> 145214521</p>
+          <p><strong>Occupation:</strong> Engineer</p>
+          <p><strong>Address:</strong> N/A</p>
+          
+          
+          <p><strong>Spouse:</strong> N/A</p>
+          
+          
+          <p><strong>Children:</strong> None</p>
+        </div>
+      </div>
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3475" alt="Goldy" class="member-image">
+        </div>
+        <h3>Goldy</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0b133fed213b1bbff7</p>
+          <p><strong>Date of Birth:</strong> 01/01/2001</p>
+          <p><strong>Phone:</strong> 256325632</p>
+          <p><strong>Occupation:</strong> Engineer</p>
+          <p><strong>Address:</strong> N/A</p>
+          
+          
+          <p><strong>Spouse:</strong> N/A</p>
+          
+          
+          <p><strong>Children:</strong> None</p>
+        </div>
+      </div>
+    
+      <div class="member-card clearfix">
+        
+        <div class="image-container">
+          <img src="http://res.cloudinary.com/basajja/image/upload/IMG_3494" alt="Silvy" class="member-image">
+        </div>
+        <h3>Silvy</h3>
+        <div class="member-info">
+          <p><strong>ID:</strong> 68a2ea0b133fed213b1bbff8</p>
+          <p><strong>Date of Birth:</strong> 01/01/2002</p>
+          <p><strong>Phone:</strong> 145214521</p>
+          <p><strong>Occupation:</strong> Engineer</p>
+          <p><strong>Address:</strong> N/A</p>
+          
+          
+          <p><strong>Spouse:</strong> N/A</p>
+          
+          
+          <p><strong>Children:</strong> None</p>
+        </div>
+      </div>
+    
+  </div>
+
+  <div class="section">
+    <h2>Family Tree</h2>
+    <div class="family-tree">
+      
+    <ul>
+      <li><strong>John</strong> (Spouse: Jane)
+      <ul>
+        <li><strong>goldy</strong></li><li><strong>silvy</strong></li>
+      </ul>
+    </li><li><strong>Jane</strong> (Spouse: John)
+      <ul>
+        <li><strong>goldy</strong></li><li><strong>silvy</strong></li>
+      </ul>
+    </li>
+    </ul>
+  
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Data Source</h2>
+    <p>This report was generated from the MongoDB database using the basajja.budimbe collection.</p>
+    <p>Generated on: 04/09/2025, 11:57:42</p>
+  </div>
+</body>
+</html>
+  
