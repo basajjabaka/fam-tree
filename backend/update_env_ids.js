@@ -41,7 +41,7 @@ const MemberSchema = new mongoose.Schema({
   about: { type: String }
 });
 
-const Member = mongoose.model(collectionName, MemberSchema);
+const Member = mongoose.model(collectionName, MemberSchema, collectionName);
 
 // Update the .env file with user IDs
 async function updateEnvWithUserIds() {

@@ -85,7 +85,7 @@ const MemberSchema = new mongoose.Schema({
   about: { type: String },
 });
 
-const Member = mongoose.model(collectionName, MemberSchema);
+const Member = mongoose.model(collectionName, MemberSchema, collectionName);
 
 app.get("/healthcheck", (req, res) => {
   res.status(200).send("OK");
@@ -179,7 +179,7 @@ app.post("/api/members", upload.single("image"), async (req, res) => {
       coordinates = [extractedLocation.lng, extractedLocation.lat];
     }
 
-    const newMember = new Budimbe({
+    const newMember = new Member({
       name,
       dob: parsedDob,
       phone,

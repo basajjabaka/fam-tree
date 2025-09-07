@@ -26,7 +26,7 @@ async function checkUser() {
   children: [{ type: mongoose.Schema.Types.ObjectId, ref: collectionName }]
 });
 
-const Member = mongoose.model(collectionName, MemberSchema);
+    const Member = mongoose.model(collectionName, MemberSchema, collectionName);
 
 const member = await Member.findById('68a2ea0a133fed213b1bbff3');
     console.log(JSON.stringify(member, null, 2));

@@ -39,7 +39,7 @@ const MemberSchema = new mongoose.Schema({
   about: { type: String }
 });
 
-const Member = mongoose.model(collectionName, MemberSchema);
+const Member = mongoose.model(collectionName, MemberSchema, collectionName);
 
 // Add all users from the .env file
 async function addUser() {
