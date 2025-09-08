@@ -27,4 +27,7 @@ dist-ssr
 /*.py
 
 .env
+.env.backup
+.env.backup2
+.env.backup3
 TTSanchery.json
